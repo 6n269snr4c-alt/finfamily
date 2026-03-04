@@ -640,13 +640,14 @@
         const app = initializeApp(firebaseConfig);
         const auth = getAuth(app);
         const db = getFirestore(app);
-        const appId = 'finfamilia-prod-v2';
 
         // ESTADOS
         let currentUser = null;
         let accounts = [];
         let transactions = [];
         let initialBalances = {};
+        
+        // Categorias Originais da Família
         let userCategories = ["Despesas com Carro", "Despesas Eventuais", "Gasolina", "Jiu Jitsu", "EscolaCondom/Energia/Internet/Telefone", "Despesas Mensais", "Doações", "Visto e Passaporte", "Antecipação Carro", "Roupas e Calçados", "Mercado", "Planos de Saúde", "Farmácia", "Móveis e Coisas pra Casa", "Lazer", "Lanches", "Presentes", "Casa Praia", "Assinaturas"];
         let incomeCategories = ["Salário", "Rendimento Investimentos", "Outras Receitas"];
         let paymentMethods = ["Pix", "Dinheiro", "Crédito", "Débito", "Transferência"];
@@ -724,30 +725,30 @@
 
         window.logout = () => signOut(auth);
 
-        // --- BANCO DE DADOS ---
+        // --- BANCO DE DADOS (CAMINHOS RAIZ RESTAURADOS) ---
         function startDatabaseListeners() {
             const uid = currentUser.uid;
             
-            // Ouvinte de Contas
-            onSnapshot(collection(db, 'artifacts', appId, 'users', uid, 'accounts'), snap => {
+            // Ouvinte de Contas (Voltando para o caminho original onde estão seus dados)
+            onSnapshot(collection(db, 'users', uid, 'accounts'), snap => {
                 accounts = [];
                 snap.forEach(d => accounts.push({ id: d.id, ...d.data() }));
                 renderAccounts();
                 calculateMath();
-            }, (err) => console.error("Erro contas:", err));
+            });
 
             // Ouvinte de Transações
-            onSnapshot(collection(db, 'artifacts', appId, 'users', uid, 'transactions'), snap => {
+            onSnapshot(collection(db, 'users', uid, 'transactions'), snap => {
                 transactions = [];
                 snap.forEach(d => transactions.push({ id: d.id, ...d.data() }));
                 renderTables();
                 calculateMath();
                 if (!document.getElementById('annualView').classList.contains('hidden')) renderAnnualDashboard();
                 if (!document.getElementById('installmentsView').classList.contains('hidden')) renderInstallmentsView();
-            }, (err) => console.error("Erro transações:", err));
+            });
 
             // Saldos Iniciais
-            onSnapshot(doc(db, 'artifacts', appId, 'users', uid, 'settings', 'balances'), snap => {
+            onSnapshot(doc(db, 'users', uid, 'settings', 'balances'), snap => {
                 if (snap.exists()) initialBalances = snap.data();
                 calculateMath();
             });
@@ -796,8 +797,10 @@
 
         // --- RENDERIZADORES ---
         window.renderTables = () => {
-            const filter = document.getElementById('filterText') ? document.getElementById('filterText').value.toLowerCase() : "";
-            const list = transactions.filter(t => t.date.startsWith(currentMonth) && t.desc.toLowerCase().includes(filter));
+            const filterEl = document.getElementById('filterText');
+            const filter = filterEl ? filterEl.value.toLowerCase() : "";
+            
+            const list = transactions.filter(t => t.date.startsWith(currentMonth) && (t.desc || "").toLowerCase().includes(filter));
             const incs = list.filter(t => t.type === 'income');
             const exps = list.filter(t => t.type === 'expense');
 
@@ -823,6 +826,7 @@
             if (expEl) expEl.innerHTML = hExp || '<tr><td colspan="8" class="text-center py-10 text-slate-400">Sem gastos registrados</td></tr>';
             const totExpAmEl = document.getElementById('totalExpensesAmount');
             if (totExpAmEl) totExpAmEl.innerText = fmt(totExp);
+            
             const expCountEl = document.getElementById('expenseCountLabel');
             if (expCountEl) expCountEl.innerText = `${exps.length} registros encontrados`;
 
@@ -853,7 +857,7 @@
             });
             
             let curInc = 0, curExp = 0;
-            transactions.filter(t => t.date.startsWith(currentMonth)).forEach(t => {
+            transactions.filter(t => (t.date || "").startsWith(currentMonth)).forEach(t => {
                 if (t.status === 'done') {
                     if (t.type === 'income') curInc += t.amount;
                     else curExp += t.amount;
@@ -907,7 +911,7 @@
             let catMatrix = {};
             [...userCategories, ...incomeCategories].forEach(c => catMatrix[c] = new Array(12).fill(0));
 
-            transactions.filter(t => t.date.startsWith(currentYearObj) && t.status === 'done').forEach(t => {
+            transactions.filter(t => (t.date || "").startsWith(currentYearObj) && t.status === 'done').forEach(t => {
                 const parts = t.date.split('-');
                 const midx = parseInt(parts[1]) - 1;
                 if(t.type === 'income') { mIncData[midx] += t.amount; } 
@@ -936,7 +940,6 @@
                 });
             }
 
-            // Donut Chart logic
             const donutCtx = document.getElementById('expenseDonutChart');
             if (donutCtx) {
                 const topCats = Object.entries(catMatrix)
@@ -988,7 +991,7 @@
 
         // --- SELEÇÃO EM LOTE ---
         window.toggleSelectAll = (type, checked) => {
-            const list = transactions.filter(t => t.date.startsWith(currentMonth) && t.type === type);
+            const list = transactions.filter(t => (t.date || "").startsWith(currentMonth) && t.type === type);
             list.forEach(t => checked ? selectedTxs.add(t.id) : selectedTxs.delete(t.id));
             renderTables();
         };
@@ -1001,11 +1004,13 @@
         function updateBulkActionBar() {
             const bar = document.getElementById('bulkActionBar');
             const count = document.getElementById('bulkActionCount');
-            if (selectedTxs.size > 0) {
-                count.innerText = selectedTxs.size;
-                bar.classList.remove('translate-y-40');
-            } else {
-                bar.classList.add('translate-y-40');
+            if (bar && count) {
+                if (selectedTxs.size > 0) {
+                    count.innerText = selectedTxs.size;
+                    bar.classList.remove('translate-y-40');
+                } else {
+                    bar.classList.add('translate-y-40');
+                }
             }
         }
 
@@ -1017,7 +1022,7 @@
         window.bulkMarkAsPaid = async () => {
             const batch = writeBatch(db);
             selectedTxs.forEach(id => {
-                const ref = doc(db, 'artifacts', appId, 'users', currentUser.uid, 'transactions', id);
+                const ref = doc(db, 'users', currentUser.uid, 'transactions', id);
                 batch.update(ref, { status: 'done' });
             });
             await batch.commit();
@@ -1028,7 +1033,7 @@
             if (!confirm(`Excluir definitivamente ${selectedTxs.size} registros?`)) return;
             const batch = writeBatch(db);
             selectedTxs.forEach(id => {
-                const ref = doc(db, 'artifacts', appId, 'users', currentUser.uid, 'transactions', id);
+                const ref = doc(db, 'users', currentUser.uid, 'transactions', id);
                 batch.delete(ref);
             });
             await batch.commit();
@@ -1037,7 +1042,7 @@
 
         // --- EXPORTAR CSV ---
         window.exportToCSV = () => {
-            const list = transactions.filter(t => t.date.startsWith(currentMonth));
+            const list = transactions.filter(t => (t.date || "").startsWith(currentMonth));
             let csv = "Data;Descricao;Categoria;Valor;Status;Tipo\n";
             list.forEach(t => {
                 csv += `${t.date};${t.desc};${t.category};${t.amount.toFixed(2)};${t.status};${t.type}\n`;
@@ -1077,7 +1082,7 @@
             e.stopPropagation();
             const t = transactions.find(x => x.id === id);
             if (t) {
-                await updateDoc(doc(db, 'artifacts', appId, 'users', currentUser.uid, 'transactions', id), { 
+                await updateDoc(doc(db, 'users', currentUser.uid, 'transactions', id), { 
                     status: t.status === 'done' ? 'pending' : 'done' 
                 });
             }
@@ -1086,7 +1091,7 @@
         window.deleteTx = async (e, id) => {
             e.stopPropagation();
             if(confirm("Excluir este lançamento para sempre?")) {
-                await deleteDoc(doc(db, 'artifacts', appId, 'users', currentUser.uid, 'transactions', id));
+                await deleteDoc(doc(db, 'users', currentUser.uid, 'transactions', id));
             }
         };
 
@@ -1108,13 +1113,13 @@
         };
 
         window.updateAccBalance = async (id, val) => {
-            await updateDoc(doc(db, 'artifacts', appId, 'users', currentUser.uid, 'accounts', id), { 
+            await updateDoc(doc(db, 'users', currentUser.uid, 'accounts', id), { 
                 [`balances.${currentMonth}`]: parseFloat(val) || 0 
             });
         };
 
         window.deleteAccount = async id => { 
-            if(confirm("Deseja excluir esta conta?")) await deleteDoc(doc(db, 'artifacts', appId, 'users', currentUser.uid, 'accounts', id)); 
+            if(confirm("Deseja excluir esta conta?")) await deleteDoc(doc(db, 'users', currentUser.uid, 'accounts', id)); 
         };
 
         window.processPaste = () => {
@@ -1127,7 +1132,8 @@
                 const parts = l.split('\t').map(p => p.trim());
                 if(parts.length >= 2) {
                     const desc = parts[0];
-                    const val = parseFloat(parts[1].replace(/[R$\s.]/g, '').replace(',', '.')) || 0;
+                    const valStr = parts[1].replace(/[R$\s.]/g, '').replace(',', '.');
+                    const val = parseFloat(valStr) || 0;
                     const cat = parts[2] || "Despesas Eventuais";
                     pendingBulkItems.push({ desc, val, cat });
                 }
@@ -1153,7 +1159,7 @@
             const uid = currentUser.uid;
             pendingBulkItems.forEach(it => {
                 const id = 'tx_bulk_' + Date.now() + Math.random().toString(36).substr(2,5);
-                const docRef = doc(db, 'artifacts', appId, 'users', uid, 'transactions', id);
+                const docRef = doc(db, 'users', uid, 'transactions', id);
                 batch.set(docRef, { type: 'expense', desc: it.desc, amount: Math.abs(it.val), date: `${currentMonth}-01`, category: it.cat, status: 'pending', parcelado: false });
             });
             await batch.commit();
@@ -1183,7 +1189,7 @@
         window.saveBaseBalance = async () => {
             const baseVal = parseFloat(document.getElementById('sysBaseBalanceInput').value) || 0;
             const startMonth = document.getElementById('sysStartMonthInput').value;
-            await setDoc(doc(db, 'artifacts', appId, 'users', currentUser.uid, 'settings', 'balances'), { base: baseVal, startMonth });
+            await setDoc(doc(db, 'users', currentUser.uid, 'settings', 'balances'), { base: baseVal, startMonth });
             closeModal('baseBalanceModal');
         };
 
@@ -1200,14 +1206,14 @@
                 status: document.getElementById('formStatus').checked ? 'done' : 'pending',
                 parcelado: document.getElementById('formParcel').checked
             };
-            await setDoc(doc(db, 'artifacts', appId, 'users', currentUser.uid, 'transactions', 'tx_' + Date.now()), data);
+            await setDoc(doc(db, 'users', currentUser.uid, 'transactions', 'tx_' + Date.now()), data);
             closeModal('transactionModal');
         });
 
         document.getElementById('accountForm').addEventListener('submit', async e => {
             e.preventDefault();
             const data = { name: document.getElementById('accName').value, type: document.getElementById('accType').value, balances: {} };
-            await setDoc(doc(db, 'artifacts', appId, 'users', currentUser.uid, 'accounts', 'acc_' + Date.now()), data);
+            await setDoc(doc(db, 'users', currentUser.uid, 'accounts', 'acc_' + Date.now()), data);
             closeModal('accountModal');
         });
 
