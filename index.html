@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>FinFamily | Gestão Financeira Completa</title>
+    <title>FinFamily | Gestão Financeira Familiar</title>
     
     <!-- Bibliotecas Externas -->
     <script src="https://cdn.tailwindcss.com"></script>
@@ -143,7 +143,6 @@
         .month-btn.inactive { background-color: #f1f5f9; color: #64748b; }
         .month-btn.inactive:hover { background-color: #e2e8f0; color: #1e293b; }
 
-        /* Cards de Resumo */
         .stat-card {
             background: white;
             padding: 1.5rem;
@@ -193,12 +192,12 @@
             <i class="ph-fill ph-wallet text-emerald-400 text-7xl animate-bounce"></i>
             <div class="absolute -top-2 -right-2 w-4 h-4 bg-rose-500 rounded-full animate-ping"></div>
         </div>
-        <h1 class="text-3xl font-black mt-6 tracking-tighter">FIN<span class="text-emerald-400">FAMILY</span></h1>
-        <p class="text-slate-400 text-sm mt-2 font-medium tracking-widest uppercase">Sincronizando dados na nuvem...</p>
+        <h1 class="text-3xl font-black mt-6 tracking-tighter uppercase">FIN<span class="text-emerald-400">FAMILY</span></h1>
+        <p class="text-slate-400 text-sm mt-2 font-medium tracking-widest uppercase">Sincronizando dados no Brasil...</p>
         <div class="loader mt-8"></div>
     </div>
 
-    <!-- Contentor Principal da Aplicação -->
+    <!-- Container Principal da Aplicação -->
     <div id="appContainer" class="hidden flex-col h-full w-full relative">
         
         <!-- Navbar Superior -->
@@ -208,13 +207,13 @@
                     <div class="bg-emerald-500 p-2 rounded-lg group-hover:rotate-12 transition-transform">
                         <i class="ph-fill ph-house-line text-white text-xl"></i>
                     </div>
-                    <h1 class="text-xl font-black text-white tracking-tighter hidden md:block">FINFAMILY</h1>
+                    <h1 class="text-xl font-black text-white tracking-tighter hidden md:block uppercase">FINFAMILY</h1>
                 </div>
                 
                 <div class="h-8 w-px bg-slate-700 mx-2 shrink-0"></div>
                 
                 <nav class="flex gap-1 shrink-0 bg-slate-800 p-1 rounded-xl">
-                    <button onclick="switchView('monthly')" id="tabMonthly" class="px-4 py-2 rounded-lg text-sm font-bold transition-all bg-emerald-500 text-white">
+                    <button onclick="switchView('monthly')" id="tabMonthly" class="px-4 py-2 rounded-lg text-sm font-bold transition-all bg-emerald-500 text-white shadow-lg shadow-emerald-500/20">
                         <i class="ph ph-calendar-check mr-2"></i>Mensal
                     </button>
                     <button onclick="switchView('annual')" id="tabAnnual" class="px-4 py-2 rounded-lg text-sm font-bold transition-all text-slate-400 hover:text-white">
@@ -238,7 +237,7 @@
             </div>
         </header>
 
-        <!-- VISÃO MENSAL: Core da Aplicação -->
+        <!-- VISÃO MENSAL -->
         <main id="monthlyView" class="flex-1 overflow-y-auto p-4 md:p-8 flex flex-col gap-8 w-full max-w-screen-2xl mx-auto pb-32">
             
             <!-- Controlador de Tempo e Ações Rápidas -->
@@ -249,17 +248,16 @@
                         <span class="font-black text-slate-700 px-2 text-lg" id="currentYearDisplay">2026</span>
                         <button onclick="changeYear(1)" class="w-8 h-8 flex items-center justify-center text-slate-500 hover:text-emerald-600 transition-colors"><i class="ph-bold ph-caret-right"></i></button>
                     </div>
-                    <div class="flex gap-2 overflow-x-auto no-scrollbar pb-1 flex-1" id="monthSelectorContainer">
-                        <!-- Botões dos meses gerados via JS -->
-                    </div>
+                    <div class="flex gap-2 overflow-x-auto no-scrollbar pb-1 flex-1" id="monthSelectorContainer"></div>
                 </div>
                 
                 <div class="flex items-center gap-4 w-full xl:w-auto shrink-0 border-t xl:border-t-0 pt-4 xl:pt-0">
-                    <div id="conciliationBadge" class="px-4 py-2 rounded-xl text-xs font-black uppercase tracking-widest flex items-center gap-2 transition-all">
-                        <!-- Status de conciliação -->
-                    </div>
+                    <div id="conciliationBadge" class="px-4 py-2 rounded-xl text-xs font-black uppercase tracking-widest flex items-center gap-2 transition-all"></div>
                     <div class="h-8 w-px bg-slate-200 hidden xl:block"></div>
                     <div class="flex gap-2">
+                        <button onclick="openModal('importModal')" class="bg-slate-50 hover:bg-indigo-50 text-slate-600 hover:text-indigo-700 px-4 py-2 rounded-xl text-xs font-bold border border-slate-200 transition-all flex items-center gap-2">
+                            <i class="ph-bold ph-list-plus text-lg"></i> IMPORTAR LOTE
+                        </button>
                         <button onclick="exportToCSV()" class="bg-slate-50 hover:bg-emerald-50 text-slate-600 hover:text-emerald-700 px-4 py-2 rounded-xl text-xs font-bold border border-slate-200 transition-all flex items-center gap-2">
                             <i class="ph-bold ph-microsoft-excel text-lg"></i> EXPORTAR
                         </button>
@@ -273,15 +271,11 @@
             <!-- Grid de Resumos e Receitas -->
             <section class="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
                 
-                <!-- Coluna da Esquerda: Fechamento e Receitas -->
                 <div class="lg:col-span-7 flex flex-col gap-8">
-                    
-                    <!-- Bloco de Fechamento Lógico -->
+                    <!-- Bloco de Fechamento -->
                     <div class="bg-white rounded-3xl shadow-sm border border-slate-200 p-6 relative overflow-hidden group">
-                        <div class="absolute top-0 right-0 w-32 h-32 bg-blue-500/5 rounded-full -mr-16 -mt-16 transition-transform group-hover:scale-110"></div>
-                        
                         <div class="flex justify-between items-center mb-6 relative z-10">
-                            <h2 class="text-lg font-black flex items-center gap-3 text-slate-800">
+                            <h2 class="text-lg font-black flex items-center gap-3 text-slate-800 uppercase tracking-tighter">
                                 <div class="w-10 h-10 bg-blue-100 text-blue-600 rounded-xl flex items-center justify-center">
                                     <i class="ph-fill ph-calculator"></i>
                                 </div>
@@ -293,9 +287,8 @@
                         </div>
 
                         <div class="grid grid-cols-1 md:grid-cols-2 gap-6 relative z-10">
-                            <!-- Cálculo Teórico -->
                             <div class="bg-slate-50 rounded-2xl p-5 border border-slate-100">
-                                <p class="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-4">Fluxo Lógico</p>
+                                <p class="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-4">Fluxo Lógico (Matemático)</p>
                                 <div class="space-y-3">
                                     <div class="flex justify-between items-center text-sm">
                                         <span class="text-slate-500">Saldo Anterior (<span id="mathLblPrevMonth">...</span>)</span>
@@ -316,35 +309,29 @@
                                 </div>
                             </div>
 
-                            <!-- Realidade Bancária -->
                             <div class="bg-slate-900 rounded-2xl p-6 text-white flex flex-col justify-between shadow-xl shadow-slate-900/20 relative overflow-hidden">
                                 <i class="ph ph-bank absolute -right-6 -bottom-6 text-white/10 text-9xl"></i>
                                 <div class="relative z-10">
-                                    <p class="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1">Total Consolidado</p>
+                                    <p class="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1">Saldo Real (Banco)</p>
                                     <h3 id="mathBankTotal" class="text-4xl font-black text-white tracking-tighter">R$ 0,00</h3>
                                     <p class="text-xs text-slate-400 mt-2 font-medium">Soma de todas as contas ativas</p>
                                 </div>
-                                <div id="conciliationCard" class="mt-4 p-3 rounded-xl border text-[10px] font-bold uppercase tracking-widest text-center transition-all">
-                                    <!-- Mensagem de sucesso/erro na conciliação -->
-                                </div>
+                                <div id="conciliationCard" class="mt-4 p-3 rounded-xl border text-[10px] font-bold uppercase tracking-widest text-center transition-all"></div>
                             </div>
                         </div>
 
-                        <!-- Detalhamento de Contas -->
                         <div class="mt-8">
                             <div class="flex justify-between items-center mb-4">
-                                <h3 class="text-xs font-black text-slate-500 uppercase tracking-widest">Contas e Investimentos</h3>
+                                <h3 class="text-xs font-black text-slate-500 uppercase tracking-widest">Contas Cadastradas</h3>
                                 <button onclick="openModal('accountModal')" class="text-xs font-bold text-blue-600 hover:underline flex items-center gap-1">
-                                    <i class="ph-bold ph-plus-circle"></i> Gerir Contas
+                                    <i class="ph-bold ph-plus-circle"></i> Nova Conta
                                 </button>
                             </div>
-                            <div class="grid grid-cols-2 md:grid-cols-3 gap-4" id="accountsGrid">
-                                <!-- Cards de contas via JS -->
-                            </div>
+                            <div class="grid grid-cols-2 md:grid-cols-3 gap-4" id="accountsGrid"></div>
                         </div>
                     </div>
 
-                    <!-- Lista de Receitas -->
+                    <!-- Receitas -->
                     <div class="bg-white rounded-3xl shadow-sm border border-slate-200 overflow-hidden">
                         <div class="p-6 border-b border-slate-100 flex justify-between items-center bg-emerald-50/30">
                             <div class="flex items-center gap-3">
@@ -354,7 +341,7 @@
                                 <h2 class="text-lg font-black text-slate-800">Receitas</h2>
                             </div>
                             <div class="text-right">
-                                <p class="text-[10px] font-black text-slate-400 uppercase tracking-widest">Total do Mês</p>
+                                <p class="text-[10px] font-black text-slate-400 uppercase tracking-widest">Entradas do Mês</p>
                                 <p class="text-2xl font-black text-emerald-600" id="totalIncomes">R$ 0,00</p>
                             </div>
                         </div>
@@ -378,7 +365,7 @@
                     </div>
                 </div>
 
-                <!-- Coluna da Direita: Distribuição por Categoria -->
+                <!-- Coluna Direita -->
                 <div class="lg:col-span-5 flex flex-col gap-8 sticky top-8">
                     <div class="bg-white rounded-3xl shadow-sm border border-slate-200 flex flex-col min-h-[500px]">
                         <div class="p-6 border-b border-slate-100 flex justify-between items-center bg-slate-50">
@@ -386,23 +373,18 @@
                                 <div class="w-10 h-10 bg-indigo-500 text-white rounded-xl flex items-center justify-center shadow-lg shadow-indigo-500/20">
                                     <i class="ph-fill ph-chart-pie-slice"></i>
                                 </div>
-                                <h2 class="text-lg font-black text-slate-800">Despesas por Categoria</h2>
+                                <h2 class="text-lg font-black text-slate-800">Saídas por Categoria</h2>
                             </div>
                             <p class="text-2xl font-black text-rose-600" id="totalExpensesAmount">R$ 0,00</p>
                         </div>
                         <div class="p-6 overflow-y-auto flex-1 custom-scrollbar">
-                            <div class="space-y-5" id="categoryTotalsList">
-                                <!-- Lista de categorias via JS -->
-                            </div>
-                        </div>
-                        <div class="p-4 bg-slate-50 border-t border-slate-100 text-center">
-                            <p class="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Análise de Comportamento Financeiro</p>
+                            <div class="space-y-5" id="categoryTotalsList"></div>
                         </div>
                     </div>
                 </div>
             </section>
 
-            <!-- Listagem Geral de Despesas (Tabela Longa) -->
+            <!-- Histórico Geral -->
             <section class="bg-white rounded-3xl shadow-sm border border-slate-200 flex flex-col overflow-hidden mb-12">
                 <div class="p-6 border-b border-slate-100 flex flex-col md:flex-row justify-between items-start md:items-center bg-rose-50/10 gap-6 sticky top-0 z-20">
                     <div class="flex items-center gap-4">
@@ -410,19 +392,17 @@
                             <i class="ph-fill ph-receipt"></i>
                         </div>
                         <div>
-                            <h2 class="text-lg font-black text-slate-800 uppercase tracking-tighter">Histórico de Despesas</h2>
-                            <p class="text-xs text-slate-500 font-medium" id="expenseCountLabel">0 lançamentos encontrados</p>
+                            <h2 class="text-lg font-black text-slate-800 uppercase tracking-tighter">Histórico de Lançamentos</h2>
+                            <p class="text-xs text-slate-500 font-medium" id="expenseCountLabel">0 registros encontrados</p>
                         </div>
                     </div>
+                    <!-- Fix para evitar erros de ID inexistente -->
+                    <p id="totalExpensesTable" class="hidden">R$ 0,00</p>
 
                     <div class="flex flex-wrap items-center gap-3 w-full md:w-auto no-print">
                         <div class="relative flex-1 md:w-64">
                             <i class="ph ph-magnifying-glass absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400"></i>
-                            <input type="text" id="filterText" oninput="renderTables()" placeholder="Procurar despesa..." class="w-full pl-10 pr-4 py-2.5 bg-slate-100 border-none rounded-xl text-sm outline-none focus:ring-2 focus:ring-rose-400 transition-all">
-                        </div>
-                        <div class="flex bg-slate-100 p-1 rounded-xl">
-                            <button onclick="setExpenseFilter('all')" id="btnFilterAll" class="px-4 py-1.5 text-xs font-bold rounded-lg transition-all bg-white shadow-sm text-slate-800">TODAS</button>
-                            <button onclick="setExpenseFilter('pending')" id="btnFilterPending" class="px-4 py-1.5 text-xs font-bold rounded-lg transition-all text-slate-500 hover:text-slate-800">A PAGAR</button>
+                            <input type="text" id="filterText" oninput="renderTables()" placeholder="Procurar..." class="w-full pl-10 pr-4 py-2.5 bg-slate-100 border-none rounded-xl text-sm outline-none focus:ring-2 focus:ring-rose-400 transition-all">
                         </div>
                     </div>
                 </div>
@@ -434,461 +414,224 @@
                                 <th class="w-12 text-center no-print">
                                     <input type="checkbox" id="selectAllExp" onchange="toggleSelectAll('expense', this.checked)" class="custom-checkbox">
                                 </th>
-                                <th class="w-16 text-center">Status</th>
-                                <th onclick="toggleSort('desc')" class="cursor-pointer">Descrição <i class="ph ph-caret-up-down opacity-30"></i></th>
-                                <th onclick="toggleSort('category')" class="cursor-pointer">Categoria <i class="ph ph-caret-up-down opacity-30"></i></th>
-                                <th>Meio de Pagamento</th>
+                                <th class="w-16 text-center">Pago</th>
+                                <th>Descrição</th>
+                                <th>Categoria</th>
+                                <th>Meio Pagto</th>
                                 <th class="w-20 text-center">Parc.</th>
-                                <th onclick="toggleSort('amount')" class="w-32 text-right cursor-pointer">Valor <i class="ph ph-caret-up-down opacity-30"></i></th>
+                                <th class="w-32 text-right">Valor</th>
                                 <th class="w-24 text-center no-print">Ações</th>
                             </tr>
                         </thead>
-                        <tbody id="expenseList">
-                            <!-- Linhas de despesas via JS -->
-                        </tbody>
+                        <tbody id="expenseList"></tbody>
                     </table>
                 </div>
             </section>
         </main>
 
-        <!-- VISÃO ANUAL: Dashboard de Performance -->
+        <!-- VISÃO ANUAL -->
         <main id="annualView" class="hidden flex-1 overflow-y-auto p-4 md:p-8 flex flex-col gap-8 w-full max-w-screen-2xl mx-auto bg-slate-50 pb-32 no-print">
             <header class="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
                 <div>
-                    <h2 class="text-3xl font-black text-slate-900 tracking-tighter" id="annualDashboardTitle">Dashboard de Desempenho</h2>
+                    <h2 class="text-3xl font-black text-slate-900 tracking-tighter">Resumo Anual <span id="annualYearLabel"></span></h2>
                     <p class="text-slate-500 font-medium">Visão consolidada do ano fiscal</p>
                 </div>
-                <div class="flex gap-2">
-                    <button onclick="window.print()" class="bg-white text-slate-700 px-5 py-2.5 rounded-xl text-sm font-bold border border-slate-200 shadow-sm flex items-center gap-2">
-                        <i class="ph ph-printer"></i> Imprimir Balanço
-                    </button>
+                <div class="flex gap-4">
+                    <div class="stat-card border-l-4 border-emerald-500">
+                        <p class="text-[10px] font-black uppercase text-slate-400">Total Receitas</p>
+                        <p class="text-2xl font-black text-emerald-600" id="annualTotalInc">R$ 0,00</p>
+                    </div>
+                    <div class="stat-card border-l-4 border-rose-500">
+                        <p class="text-[10px] font-black uppercase text-slate-400">Total Despesas</p>
+                        <p class="text-2xl font-black text-rose-600" id="annualTotalExp">R$ 0,00</p>
+                    </div>
                 </div>
             </header>
-
-            <!-- Cards de Indicadores Anuais -->
-            <div class="grid grid-cols-2 lg:grid-cols-6 gap-6">
-                <div class="stat-card border-l-4 border-l-emerald-500">
-                    <p class="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1">Receitas</p>
-                    <p class="text-xl font-black text-emerald-600" id="annualTotalInc">R$ 0,00</p>
-                </div>
-                <div class="stat-card border-l-4 border-l-rose-500">
-                    <p class="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1">Despesas</p>
-                    <p class="text-xl font-black text-rose-600" id="annualTotalExp">R$ 0,00</p>
-                </div>
-                <div class="stat-card border-l-4 border-l-blue-500">
-                    <p class="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1">Geração Caixa</p>
-                    <p class="text-xl font-black text-blue-600" id="annualTotalCash">R$ 0,00</p>
-                </div>
-                <div class="stat-card border-l-4 border-l-purple-500">
-                    <p class="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1">% Poupança</p>
-                    <p class="text-xl font-black text-purple-600" id="annualSavingsRate">0%</p>
-                </div>
-                <div class="stat-card border-l-4 border-l-slate-800">
-                    <p class="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1">Média Gastos</p>
-                    <p class="text-xl font-black text-slate-800" id="annualMonthlyAvg">R$ 0,00</p>
-                </div>
-                <div class="stat-card bg-slate-900 text-white border-none relative overflow-hidden">
-                    <div class="relative z-10">
-                        <p class="text-[10px] font-black text-slate-500 uppercase tracking-widest mb-1">Eficiência</p>
-                        <p class="text-xl font-black" id="annualEfficiency">---</p>
-                    </div>
-                    <i class="ph ph-trend-up absolute -right-2 -bottom-2 text-white/5 text-6xl"></i>
-                </div>
-            </div>
 
             <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
-                <!-- Gráfico de Fluxo -->
-                <div class="lg:col-span-2 bg-white rounded-3xl shadow-sm border border-slate-200 p-6">
+                <div class="lg:col-span-2 bg-white rounded-3xl p-8 shadow-sm border border-slate-200">
                     <h3 class="font-black text-slate-800 mb-6 flex items-center gap-2">
-                        <i class="ph-fill ph-chart-bar text-emerald-500 text-xl"></i> Fluxo Mensal de Receitas vs Despesas
+                        <i class="ph-fill ph-chart-bar text-emerald-500"></i> Fluxo Mensal
                     </h3>
-                    <div class="h-[300px] relative">
-                        <canvas id="cashFlowChart"></canvas>
-                    </div>
+                    <div class="h-[350px]"><canvas id="cashFlowChart"></canvas></div>
                 </div>
-                
-                <!-- Composição de Gastos -->
-                <div class="bg-white rounded-3xl shadow-sm border border-slate-200 p-6">
+                <div class="bg-white rounded-3xl p-8 shadow-sm border border-slate-200">
                     <h3 class="font-black text-slate-800 mb-6 flex items-center gap-2">
-                        <i class="ph-fill ph-chart-donut text-rose-500 text-xl"></i> Top Categorias (Anual)
+                        <i class="ph-fill ph-chart-donut text-rose-500"></i> Top 5 Categorias
                     </h3>
-                    <div class="h-[300px] flex items-center justify-center">
-                        <canvas id="expenseDonutChart"></canvas>
-                    </div>
+                    <div class="h-[350px]"><canvas id="expenseDonutChart"></canvas></div>
                 </div>
             </div>
 
-            <!-- Mapa de Despesas (Matriz) -->
             <div class="bg-white rounded-3xl shadow-sm border border-slate-200 overflow-hidden">
-                <div class="p-6 bg-slate-800 flex justify-between items-center">
-                    <h3 class="text-white font-black flex items-center gap-2">
-                        <i class="ph-fill ph-table text-emerald-400"></i> Matriz Comparativa Mensal
-                    </h3>
-                    <p class="text-xs text-slate-400 font-bold uppercase tracking-widest">Valores Consolidados por Categoria</p>
-                </div>
                 <div class="overflow-x-auto">
-                    <table class="w-full annual-table" id="annualMatrixTable">
-                        <!-- Gerado via JS -->
-                    </table>
+                    <table class="w-full annual-table" id="annualMatrixTable"></table>
                 </div>
+            </div>
+            <!-- Escondidos para evitar erros de JavaScript por ID ausente -->
+            <div class="hidden">
+                <p id="annualSavingsRate"></p><p id="annualMonthlyAvg"></p><p id="annualEfficiency"></p><p id="annualTotalCash"></p>
             </div>
         </main>
 
-        <!-- VISÃO PARCELAS: Controle de Dívidas a Longo Prazo -->
-        <main id="installmentsView" class="hidden flex-1 overflow-y-auto p-4 md:p-8 flex flex-col gap-8 w-full max-w-screen-2xl mx-auto bg-slate-50 pb-32 no-print">
-            <header class="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
-                <div>
-                    <h2 class="text-3xl font-black text-slate-900 tracking-tighter">Gestão de Parcelamentos</h2>
-                    <p class="text-slate-500 font-medium">Controlo de compras a prazo e projeção de dívidas</p>
-                </div>
-                <div class="bg-white p-4 rounded-2xl border border-slate-200 flex items-center gap-4 shadow-sm">
-                    <div>
-                        <p class="text-[10px] font-black text-slate-400 uppercase tracking-widest">Total Devedor Estimado</p>
-                        <p class="text-2xl font-black text-rose-600" id="installmentsTotalDebt">R$ 0,00</p>
-                    </div>
-                    <div class="w-12 h-12 bg-rose-100 text-rose-600 rounded-xl flex items-center justify-center">
-                        <i class="ph-fill ph-credit-card text-2xl"></i>
-                    </div>
+        <!-- VISÃO PARCELAS -->
+        <main id="installmentsView" class="hidden flex-1 overflow-y-auto p-4 md:p-8 flex flex-col gap-8 w-full max-w-screen-2xl mx-auto bg-slate-50 pb-32">
+            <header class="flex justify-between items-center">
+                <h2 class="text-3xl font-black text-slate-900 tracking-tighter">Gestão de Parcelamentos</h2>
+                <div class="stat-card bg-rose-50 border-rose-200">
+                    <p class="text-[10px] font-black uppercase text-rose-400">Total Devedor Futuro</p>
+                    <p class="text-2xl font-black text-rose-600" id="installmentsTotalDebt">R$ 0,00</p>
                 </div>
             </header>
-
-            <div class="grid grid-cols-1 lg:grid-cols-4 gap-8 items-start">
-                <!-- Resumo por Categoria -->
-                <div class="bg-white rounded-3xl shadow-sm border border-slate-200 p-6">
-                    <h3 class="font-black text-slate-800 mb-6 uppercase text-[10px] tracking-widest border-b pb-4">Dívida por Categoria</h3>
-                    <div id="installmentsCategorySummary" class="space-y-4">
-                        <!-- Lista JS -->
-                    </div>
-                </div>
-                
-                <!-- Projeção Futura -->
-                <div class="bg-white rounded-3xl shadow-sm border border-slate-200 p-6 lg:col-span-3">
-                    <h3 class="font-black text-slate-800 mb-6 uppercase text-[10px] tracking-widest border-b pb-4">Projeção de Pagamentos Próximos 6 Meses</h3>
-                    <div class="flex overflow-x-auto gap-4 pb-4 no-scrollbar" id="installmentsProjectionGrid">
-                        <!-- Cards JS -->
-                    </div>
-                </div>
-            </div>
-
-            <!-- Tabela de Parcelamentos Ativos -->
-            <div class="bg-white rounded-3xl shadow-sm border border-slate-200 overflow-hidden">
-                <div class="p-6 bg-slate-50 flex justify-between items-center border-b">
-                    <span class="font-black text-slate-800 uppercase tracking-tighter">Contratos de Parcelamento Ativos</span>
-                    <i class="ph ph-info text-slate-400 cursor-help" title="Lançamentos marcados como parcelados"></i>
-                </div>
-                <div class="overflow-x-auto">
-                    <table class="w-full text-left expense-table">
-                        <thead>
-                            <tr>
-                                <th>Descrição do Bem/Serviço</th>
-                                <th>Categoria</th>
-                                <th class="text-center">Parcela Atual</th>
-                                <th class="text-right">Valor Parcela</th>
-                                <th class="text-right">Total Contrato</th>
-                                <th class="text-center">Mês Final</th>
-                            </tr>
-                        </thead>
-                        <tbody id="installmentsList">
-                            <!-- Lista JS -->
-                        </tbody>
-                    </table>
-                </div>
+            <div id="installmentsCategorySummary" class="grid grid-cols-2 md:grid-cols-4 gap-4"></div>
+            <div id="installmentsProjectionGrid" class="flex gap-4 overflow-x-auto pb-4 no-scrollbar"></div>
+            <div class="bg-white rounded-3xl shadow-sm border overflow-hidden">
+                <table class="w-full text-left expense-table">
+                    <thead>
+                        <tr><th>Descrição</th><th>Categoria</th><th class="text-right">Valor</th><th class="text-center">Data Registro</th></tr>
+                    </thead>
+                    <tbody id="installmentsList"></tbody>
+                </table>
             </div>
         </main>
 
-        <!-- Barra Inferior de Ações em Lote (Contextual) -->
+        <!-- Barra de Ações Lote -->
         <div id="bulkActionBar" class="fixed bottom-8 left-1/2 -translate-x-1/2 bg-slate-900 text-white px-8 py-5 rounded-3xl shadow-2xl transform translate-y-40 transition-transform duration-500 z-50 flex items-center gap-10 border border-slate-800 no-print">
             <div class="flex items-center gap-4">
                 <div class="w-12 h-12 bg-emerald-500 rounded-2xl flex items-center justify-center shadow-lg shadow-emerald-500/20">
                     <span id="bulkActionCount" class="font-black text-xl">0</span>
                 </div>
-                <div>
-                    <p class="text-sm font-black text-white leading-none">Selecionados</p>
-                    <p class="text-[10px] text-slate-400 font-bold uppercase mt-1">Gerir múltiplos registos</p>
-                </div>
+                <p class="text-sm font-black uppercase">Selecionados</p>
             </div>
-            
-            <div class="h-10 w-px bg-slate-800"></div>
-            
             <div class="flex gap-3">
-                <button onclick="bulkMarkAsPaid()" class="bg-emerald-600 hover:bg-emerald-500 px-6 py-2.5 rounded-xl text-xs font-black transition-all flex items-center gap-2">
-                    <i class="ph-fill ph-check-circle text-lg"></i> MARCAR PAGO
-                </button>
-                <button onclick="bulkDelete()" class="bg-rose-600 hover:bg-rose-500 px-6 py-2.5 rounded-xl text-xs font-black transition-all flex items-center gap-2">
-                    <i class="ph-fill ph-trash text-lg"></i> ELIMINAR
-                </button>
-                <button onclick="clearSelection()" class="w-10 h-10 flex items-center justify-center bg-slate-800 hover:bg-slate-700 rounded-xl text-slate-400 hover:text-white transition-all">
-                    <i class="ph ph-x-circle text-2xl"></i>
-                </button>
+                <button onclick="bulkMarkAsPaid()" class="bg-emerald-600 hover:bg-emerald-500 px-6 py-2.5 rounded-xl text-xs font-black">PAGAR</button>
+                <button onclick="bulkDelete()" class="bg-rose-600 hover:bg-rose-500 px-6 py-2.5 rounded-xl text-xs font-black">EXCLUIR</button>
+                <button onclick="clearSelection()" class="w-10 h-10 bg-slate-800 rounded-xl flex items-center justify-center"><i class="ph ph-x"></i></button>
             </div>
         </div>
     </div>
 
-    <!-- MODAIS E COMPONENTES DE INTERFACE -->
-    
-    <!-- Modal: Saldo de Abertura -->
-    <div id="baseBalanceModal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-md hidden z-[60] flex justify-center items-center opacity-0 transition-all p-4 no-print">
-        <div class="bg-white rounded-3xl shadow-2xl w-full max-w-sm overflow-hidden transform scale-95 transition-all" id="baseBalanceModalContent">
-            <div class="p-6 border-b border-slate-100 bg-blue-50/50 flex justify-between items-center">
-                <h3 class="font-black text-blue-900 flex items-center gap-3">
-                    <i class="ph-fill ph-coins text-xl"></i> Ponto de Partida
-                </h3>
-                <button onclick="closeModal('baseBalanceModal')" class="w-8 h-8 rounded-lg hover:bg-white flex items-center justify-center text-slate-400 transition-colors">
-                    <i class="ph-bold ph-x"></i>
-                </button>
+    <!-- MODAIS -->
+
+    <!-- Modal Lote -->
+    <div id="importModal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-md hidden z-[70] flex justify-center items-start pt-10 px-4 transition-all">
+        <div class="bg-white rounded-3xl shadow-2xl w-full max-w-4xl overflow-hidden transform scale-95 transition-all mb-10" id="importModalContent">
+            <div class="p-6 border-b bg-slate-50 flex justify-between items-center">
+                <h3 class="font-black text-slate-800 uppercase">Importação Rápida</h3>
+                <button onclick="closeModal('importModal')" class="text-slate-400"><i class="ph-bold ph-x text-2xl"></i></button>
             </div>
-            <div class="p-8">
-                <div class="space-y-6">
-                    <div>
-                        <label class="block text-[10px] font-black text-slate-400 uppercase tracking-widest mb-2">Mês de Implantação</label>
-                        <input type="month" id="sysStartMonthInput" class="w-full bg-slate-50 border-2 border-slate-100 rounded-xl px-4 py-3 text-sm font-bold outline-none focus:border-blue-500 transition-all">
+            <div class="p-8 space-y-6">
+                <p class="text-xs text-slate-500 font-medium italic">Cole sua lista: Descrição [TAB] Valor [TAB] Categoria</p>
+                <textarea id="bulkPasteArea" rows="6" class="w-full bg-slate-50 border-2 border-slate-100 rounded-2xl p-4 font-mono text-sm outline-none focus:border-indigo-500 transition-all"></textarea>
+                <button onclick="processPaste()" class="w-full bg-indigo-600 text-white font-black py-4 rounded-2xl shadow-lg shadow-indigo-600/20">PROCESSAR</button>
+                <div id="bulkReviewContainer" class="hidden space-y-4">
+                    <div class="max-h-[300px] overflow-y-auto border rounded-2xl">
+                        <table class="w-full text-left expense-table">
+                            <thead class="sticky top-0"><tr><th>Desc</th><th>Valor</th><th>Cat</th><th></th></tr></thead>
+                            <tbody id="bulkReviewList"></tbody>
+                        </table>
                     </div>
-                    <div>
-                        <label class="block text-[10px] font-black text-slate-400 uppercase tracking-widest mb-2">Saldo em Conta nessa Data</label>
-                        <div class="relative">
-                            <span class="absolute left-4 top-1/2 -translate-y-1/2 font-bold text-slate-400">€</span>
-                            <input type="number" step="0.01" id="sysBaseBalanceInput" class="w-full bg-slate-50 border-2 border-slate-100 rounded-xl pl-10 pr-4 py-4 text-2xl font-black outline-none focus:border-blue-500 transition-all">
-                        </div>
-                    </div>
-                    <p class="text-[10px] text-slate-500 leading-relaxed">
-                        <i class="ph ph-info-circle mr-1"></i> O sistema usará este valor como base para todos os cálculos de conciliação futuros.
-                    </p>
+                    <button onclick="saveBulkTransactions()" class="w-full bg-slate-900 text-white font-black py-4 rounded-2xl">SALVAR NO MÊS</button>
                 </div>
-                <button onclick="saveBaseBalance()" class="w-full bg-blue-600 hover:bg-blue-700 text-white font-black py-4 rounded-2xl mt-8 shadow-lg shadow-blue-600/20 transition-all active:scale-95">
-                    DEFINIR SALDO BASE
-                </button>
             </div>
         </div>
     </div>
 
-    <!-- Modal: Formulário de Lançamento (Transação) -->
-    <div id="transactionModal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-md hidden z-[60] flex justify-center items-center opacity-0 transition-all p-4 no-print">
+    <!-- Modal Lançamento -->
+    <div id="transactionModal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-md hidden z-[60] flex justify-center items-center opacity-0 transition-all p-4">
         <div class="bg-white rounded-3xl shadow-2xl w-full max-w-lg overflow-hidden transform scale-95 transition-all" id="transactionModalContent">
-            <div class="p-6 border-b border-slate-100 bg-slate-50 flex justify-between items-center">
-                <h3 class="font-black text-slate-900 text-lg uppercase tracking-tighter" id="transactionModalTitle">Registo Financeiro</h3>
-                <button onclick="closeModal('transactionModal')" class="text-slate-400 hover:text-rose-500 transition-colors">
-                    <i class="ph-bold ph-x text-2xl"></i>
-                </button>
-            </div>
-            
             <form id="transactionForm" class="p-8 space-y-6">
-                <!-- Seletor de Tipo -->
                 <div class="grid grid-cols-2 gap-4">
                     <label class="cursor-pointer group">
                         <input type="radio" name="formType" value="expense" checked class="sr-only" onchange="updateFormUI()">
-                        <div class="flex items-center justify-center gap-2 p-4 border-2 border-slate-100 rounded-2xl transition-all group-has-[:checked]:bg-rose-50 group-has-[:checked]:border-rose-500 group-has-[:checked]:text-rose-700">
-                            <i class="ph-fill ph-trend-down"></i>
-                            <span class="text-sm font-black uppercase">DESPESA</span>
-                        </div>
+                        <div class="flex items-center justify-center gap-2 p-4 border-2 border-slate-100 rounded-2xl group-has-[:checked]:bg-rose-50 group-has-[:checked]:border-rose-500 font-black text-sm">DESPESA</div>
                     </label>
                     <label class="cursor-pointer group">
                         <input type="radio" name="formType" value="income" class="sr-only" onchange="updateFormUI()">
-                        <div class="flex items-center justify-center gap-2 p-4 border-2 border-slate-100 rounded-2xl transition-all group-has-[:checked]:bg-emerald-50 group-has-[:checked]:border-emerald-500 group-has-[:checked]:text-emerald-700">
-                            <i class="ph-fill ph-trend-up"></i>
-                            <span class="text-sm font-black uppercase">RECEITA</span>
-                        </div>
+                        <div class="flex items-center justify-center gap-2 p-4 border-2 border-slate-100 rounded-2xl group-has-[:checked]:bg-emerald-50 group-has-[:checked]:border-emerald-500 font-black text-sm">RECEITA</div>
                     </label>
                 </div>
-
-                <!-- Campos Principais -->
-                <div class="space-y-4">
-                    <div>
-                        <label class="block text-[10px] font-black text-slate-400 uppercase mb-2">Descrição</label>
-                        <input type="text" id="formDesc" required placeholder="Ex: Supermercado Semanal" class="w-full bg-slate-50 border-2 border-slate-100 rounded-xl px-4 py-3 font-bold outline-none focus:border-slate-800 transition-all">
-                    </div>
-                    
-                    <div class="grid grid-cols-2 gap-4">
-                        <div>
-                            <label class="block text-[10px] font-black text-slate-400 uppercase mb-2">Valor</label>
-                            <input type="number" step="0.01" id="formAmount" required placeholder="0,00" class="w-full bg-slate-50 border-2 border-slate-100 rounded-xl px-4 py-3 font-bold outline-none focus:border-slate-800 transition-all text-lg">
-                        </div>
-                        <div>
-                            <label class="block text-[10px] font-black text-slate-400 uppercase mb-2">Data</label>
-                            <input type="date" id="formDate" required class="w-full bg-slate-50 border-2 border-slate-100 rounded-xl px-4 py-3 font-bold outline-none focus:border-slate-800 transition-all text-sm">
-                        </div>
-                    </div>
-
-                    <div class="grid grid-cols-2 gap-4">
-                        <div>
-                            <label class="block text-[10px] font-black text-slate-400 uppercase mb-2">Categoria</label>
-                            <select id="formCategory" class="w-full bg-slate-50 border-2 border-slate-100 rounded-xl px-4 py-3 font-bold outline-none focus:border-slate-800 appearance-none"></select>
-                        </div>
-                        <div>
-                            <label class="block text-[10px] font-black text-slate-400 uppercase mb-2">Pagamento</label>
-                            <select id="formPaymentMethod" class="w-full bg-slate-50 border-2 border-slate-100 rounded-xl px-4 py-3 font-bold outline-none focus:border-slate-800 appearance-none"></select>
-                        </div>
-                    </div>
+                <input type="text" id="formDesc" required placeholder="Ex: Supermercado" class="w-full bg-slate-50 border-2 rounded-xl px-4 py-3 font-bold">
+                <div class="grid grid-cols-2 gap-4">
+                    <input type="number" step="0.01" id="formAmount" required placeholder="Valor R$" class="w-full bg-slate-50 border-2 rounded-xl px-4 py-3 font-bold">
+                    <input type="date" id="formDate" required class="w-full bg-slate-50 border-2 rounded-xl px-4 py-3 font-bold">
                 </div>
-
-                <!-- Switches de Estado -->
-                <div class="flex items-center justify-between p-4 bg-slate-50 rounded-2xl border-2 border-slate-100">
-                    <label class="flex items-center gap-3 cursor-pointer group">
-                        <input type="checkbox" id="formStatus" class="custom-checkbox">
-                        <span class="text-xs font-black text-slate-700 uppercase tracking-tighter" id="lblFormStatus">Já Liquidado</span>
-                    </label>
-                    <label class="flex items-center gap-3 cursor-pointer group" id="parcelLabel">
-                        <input type="checkbox" id="formParcel" class="custom-checkbox">
-                        <span class="text-xs font-black text-slate-700 uppercase tracking-tighter">Parcelado</span>
-                    </label>
+                <div class="grid grid-cols-2 gap-4">
+                    <select id="formCategory" class="w-full bg-slate-50 border-2 rounded-xl px-4 py-3 font-bold"></select>
+                    <select id="formPaymentMethod" class="w-full bg-slate-50 border-2 rounded-xl px-4 py-3 font-bold"></select>
                 </div>
-
-                <button type="submit" id="transactionSubmitBtn" class="w-full bg-slate-900 hover:bg-slate-800 text-white font-black py-4 rounded-2xl shadow-xl transition-all active:scale-95 uppercase tracking-widest">
-                    Confirmar Registo
-                </button>
+                <div class="flex items-center justify-between p-4 bg-slate-50 rounded-2xl border">
+                    <label class="flex items-center gap-2 font-black text-xs uppercase"><input type="checkbox" id="formStatus" class="custom-checkbox"> <span id="lblFormStatus">PAGO</span></label>
+                    <label class="flex items-center gap-2 font-black text-xs uppercase" id="parcelLabel"><input type="checkbox" id="formParcel" class="custom-checkbox"> PARCELADO</label>
+                </div>
+                <button type="submit" class="w-full bg-slate-900 text-white font-black py-4 rounded-2xl shadow-xl">CONFIRMAR REGISTRO</button>
             </form>
         </div>
     </div>
 
-    <!-- Modal: Configurações de Categorias -->
-    <div id="categoryManageModal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-md hidden z-[60] flex justify-center items-center opacity-0 transition-all p-4 no-print">
-        <div class="bg-white rounded-3xl shadow-2xl w-full max-w-4xl overflow-hidden transform scale-95 transition-all flex flex-col max-h-[90vh]" id="categoryManageModalContent">
-            <div class="p-6 border-b bg-slate-50 flex justify-between items-center shrink-0">
-                <h3 class="font-black text-slate-800 flex items-center gap-3">
-                    <i class="ph-fill ph-gear text-xl text-emerald-500"></i> Ajustes de Categorias e Sistema
-                </h3>
-                <button onclick="closeModal('categoryManageModal')" class="text-slate-400 hover:text-rose-500 transition-colors"><i class="ph-bold ph-x text-2xl"></i></button>
-            </div>
-            <div class="p-8 flex-1 overflow-y-auto custom-scrollbar">
-                <div class="grid grid-cols-1 md:grid-cols-2 gap-12">
-                    <!-- Secção Despesas -->
-                    <div>
-                        <h4 class="font-black text-rose-600 uppercase text-xs tracking-widest mb-4 flex items-center gap-2">
-                            <i class="ph-bold ph-minus-circle"></i> Categorias de Saída
-                        </h4>
-                        <div class="flex gap-2 mb-6">
-                            <input type="text" id="newCatExp" class="flex-1 bg-slate-50 border-2 border-slate-100 rounded-xl px-4 py-2 text-sm font-bold" placeholder="Nova categoria...">
-                            <button onclick="addConfigItem('expense')" class="bg-rose-500 text-white w-10 h-10 rounded-xl flex items-center justify-center hover:bg-rose-600 transition-all shadow-lg shadow-rose-500/20">
-                                <i class="ph-bold ph-plus"></i>
-                            </button>
-                        </div>
-                        <div id="manageExpList" class="space-y-2 max-h-64 overflow-y-auto pr-2 custom-scrollbar"></div>
-                    </div>
-                    
-                    <!-- Secção Receitas -->
-                    <div>
-                        <h4 class="font-black text-emerald-600 uppercase text-xs tracking-widest mb-4 flex items-center gap-2">
-                            <i class="ph-bold ph-plus-circle"></i> Categorias de Entrada
-                        </h4>
-                        <div class="flex gap-2 mb-6">
-                            <input type="text" id="newCatInc" class="flex-1 bg-slate-50 border-2 border-slate-100 rounded-xl px-4 py-2 text-sm font-bold" placeholder="Nova categoria...">
-                            <button onclick="addConfigItem('income')" class="bg-emerald-500 text-white w-10 h-10 rounded-xl flex items-center justify-center hover:bg-emerald-600 transition-all shadow-lg shadow-emerald-500/20">
-                                <i class="ph-bold ph-plus"></i>
-                            </button>
-                        </div>
-                        <div id="manageIncList" class="space-y-2 max-h-64 overflow-y-auto pr-2 custom-scrollbar"></div>
-                    </div>
-                </div>
-
-                <!-- Secção de Perigo / Demo -->
-                <div class="mt-12 pt-8 border-t border-dashed border-slate-200">
-                    <h4 class="font-black text-slate-400 text-[10px] uppercase tracking-widest mb-6">Ferramentas de Desenvolvedor</h4>
-                    <div class="bg-rose-50 rounded-2xl p-6 border-2 border-rose-100 flex flex-col md:flex-row justify-between items-center gap-4">
-                        <div>
-                            <p class="font-black text-rose-800 text-sm">Limpar Dados e Reiniciar</p>
-                            <p class="text-xs text-rose-600 mt-1">Cuidado! Esta ação apagará todos os seus lançamentos e carregará dados de exemplo.</p>
-                        </div>
-                        <button onclick="generateDemoData()" class="bg-rose-600 hover:bg-rose-700 text-white px-6 py-3 rounded-xl text-xs font-black shadow-lg shadow-rose-600/20 transition-all active:scale-95 flex items-center gap-2">
-                            <i class="ph-bold ph-warning"></i> REINICIAR COM DEMO
-                        </button>
-                    </div>
-                </div>
+    <!-- Modal Saldo Inicial -->
+    <div id="baseBalanceModal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-md hidden z-[60] flex justify-center items-center opacity-0 transition-all p-4">
+        <div class="bg-white rounded-3xl shadow-2xl w-full max-w-sm overflow-hidden transform scale-95 transition-all" id="baseBalanceModalContent">
+            <div class="p-8 space-y-6 text-center">
+                <h3 class="font-black text-slate-800 uppercase">Ponto de Partida</h3>
+                <input type="month" id="sysStartMonthInput" class="w-full bg-slate-50 border-2 rounded-xl px-4 py-3 font-bold">
+                <input type="number" step="0.01" id="sysBaseBalanceInput" placeholder="Saldo Inicial R$" class="w-full bg-slate-50 border-2 rounded-xl px-4 py-3 font-bold">
+                <button onclick="saveBaseBalance()" class="w-full bg-blue-600 text-white font-black py-4 rounded-2xl shadow-lg">DEFINIR SALDO BASE</button>
             </div>
         </div>
     </div>
 
-    <!-- Modal: Cadastro de Contas Bancárias -->
-    <div id="accountModal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-md hidden z-[60] flex justify-center items-center opacity-0 transition-all p-4 no-print">
+    <!-- Modal Contas -->
+    <div id="accountModal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-md hidden z-[60] flex justify-center items-center opacity-0 transition-all p-4">
         <div class="bg-white rounded-3xl shadow-2xl w-full max-w-sm overflow-hidden transform scale-95 transition-all" id="accountModalContent">
-            <div class="p-6 border-b bg-slate-50 flex justify-between items-center">
-                <h3 class="font-black text-slate-800">Nova Conta / Ativo</h3>
-                <button onclick="closeModal('accountModal')" class="text-slate-400"><i class="ph-bold ph-x text-xl"></i></button>
-            </div>
             <form id="accountForm" class="p-8 space-y-6">
-                <div>
-                    <label class="block text-[10px] font-black text-slate-400 uppercase tracking-widest mb-2">Identificação (Nome)</label>
-                    <input type="text" id="accName" required placeholder="Ex: Banco Millennium, Caixa..." class="w-full bg-slate-50 border-2 border-slate-100 rounded-xl px-4 py-3 font-bold outline-none focus:border-blue-500 transition-all">
-                </div>
-                <div>
-                    <label class="block text-[10px] font-black text-slate-400 uppercase tracking-widest mb-2">Tipo de Recurso</label>
-                    <select id="accType" required class="w-full bg-slate-50 border-2 border-slate-100 rounded-xl px-4 py-3 font-bold outline-none focus:border-blue-500 appearance-none"></select>
-                </div>
-                <button type="submit" class="w-full bg-slate-900 text-white font-black py-4 rounded-2xl shadow-xl transition-all active:scale-95 uppercase tracking-widest">
-                    CADASTRAR CONTA
-                </button>
+                <h3 class="font-black text-slate-800 uppercase text-center">Nova Conta Bancária</h3>
+                <input type="text" id="accName" required placeholder="Nome da Conta" class="w-full bg-slate-50 border-2 rounded-xl px-4 py-3 font-bold">
+                <select id="accType" class="w-full bg-slate-50 border-2 rounded-xl px-4 py-3 font-bold"></select>
+                <button type="submit" class="w-full bg-slate-900 text-white font-black py-4 rounded-2xl shadow-xl">CADASTRAR</button>
             </form>
         </div>
     </div>
 
-    <!-- Firebase SDK e Lógica Centralizada -->
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
-        import { getAuth, onAuthStateChanged, signInWithCustomToken, signInAnonymously } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
+        import { getAuth, onAuthStateChanged, signInAnonymously } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
         import { getFirestore, collection, doc, setDoc, deleteDoc, updateDoc, onSnapshot, writeBatch, getDocs } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
 
-        // =====================================================================
-        // CONFIGURAÇÃO DO FIREBASE (PARA DEPLOY EXTERNO COMO VERCEL)
-        // Se você estiver no Vercel, preencha este objeto abaixo com os dados
-        // do seu Firebase Console para o app funcionar fora do Canvas.
-        // =====================================================================
-        const manualFirebaseConfig = {
-            apiKey: "",
-            authDomain: "",
-            projectId: "",
-            storageBucket: "",
-            messagingSenderId: "",
-            appId: ""
+        const firebaseConfig = {
+            apiKey: "AIzaSyDHcMf8iobRwnlwRPBYIBx5xliegUojInM",
+            authDomain: "finfamilia-e0ecc.firebaseapp.com",
+            projectId: "finfamilia-e0ecc",
+            storageBucket: "finfamilia-e0ecc.firebasestorage.app",
+            messagingSenderId: "93131862320",
+            appId: "1:93131862320:web:12137a67e7c4de923298f5"
         };
-
-        // Lógica para detectar se estamos no Canvas ou em ambiente externo
-        let firebaseConfig;
-        try {
-            // Tenta usar a configuração injetada automaticamente (Canvas)
-            firebaseConfig = JSON.parse(__firebase_config);
-        } catch (e) {
-            // Se falhar (fora do Canvas), usa a configuração manual
-            firebaseConfig = manualFirebaseConfig;
-        }
 
         const app = initializeApp(firebaseConfig);
         const auth = getAuth(app);
         const db = getFirestore(app);
-        
-        let appId;
-        try {
-            appId = typeof __app_id !== 'undefined' ? __app_id : 'finfamily-v1';
-        } catch (e) {
-            appId = 'finfamily-v1'; // Fallback para deploy externo
-        }
+        const appId = 'finfamilia-prod-v2';
 
-        // VARIÁVEIS DE ESTADO GLOBAL
         let currentUser = null;
         let accounts = [];
         let transactions = [];
         let initialBalances = {};
-        let userCategories = [];
-        let incomeCategories = [];
-        let paymentMethods = [];
-        let accountTypes = [];
-        
-        // Estado de Visualização Atual
+        let userCategories = ["Habitação", "Alimentação", "Transporte", "Saúde", "Lazer", "Educação", "Assinaturas", "Mercado", "Farmácia", "Presentes", "Outros"];
+        let incomeCategories = ["Salário", "Freelance", "Rendimentos", "Vendas", "Outros"];
+        let paymentMethods = ["Pix", "Dinheiro", "Crédito", "Débito", "Transferência"];
+        let accountTypes = ["Corrente", "Poupança", "Investimentos", "Carteira"];
+
         let currentYearObj = new Date().getFullYear();
         let selectedMonthNum = String(new Date().getMonth() + 1).padStart(2, '0');
         let currentMonth = `${currentYearObj}-${selectedMonthNum}`;
-        let expenseFilter = 'all';
         let sortCol = 'date';
         let sortAsc = false;
-        
-        // Estado de Seleção em Lote
         let selectedTxs = new Set();
-        
-        // Instâncias de Gráficos
         let chartInstanceCashFlow = null;
         let chartInstanceDonut = null;
-        
-        // Estado de Edição
-        let editingTxId = null;
+        let pendingBulkItems = [];
 
-        // AUXILIARES DE FORMATAÇÃO
+        // --- FORMATADORES ---
         const fmt = val => new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(val);
         const formatMonthLong = yyyymm => {
             const mNames = ['Janeiro', 'Fevereiro', 'Março', 'Abril', 'Maio', 'Junho', 'Julho', 'Agosto', 'Setembro', 'Outubro', 'Novembro', 'Dezembro'];
@@ -896,70 +639,21 @@
             return `${mNames[parseInt(m) - 1]} de ${y}`;
         };
 
-        // INICIALIZAÇÃO E AUTENTICAÇÃO
-        const initAuth = async () => {
-            try {
-                let token;
-                try { token = __initial_auth_token; } catch (e) { token = null; }
-
-                if (token) {
-                    await signInWithCustomToken(auth, token);
-                } else {
-                    await signInAnonymously(auth);
-                }
-            } catch (err) {
-                console.error("Erro na autenticação:", err);
-            }
-        };
-
+        // --- AUTH ---
         onAuthStateChanged(auth, user => {
-            const loading = document.getElementById('loadingScreen');
-            const appS = document.getElementById('appContainer');
-            
             if (user) {
                 currentUser = user;
-                loading.style.opacity = '0';
-                setTimeout(() => loading.classList.add('hidden'), 500);
-                appS.classList.remove('hidden');
-                appS.classList.add('flex');
+                document.getElementById('loadingScreen').classList.add('hidden');
+                document.getElementById('appContainer').classList.remove('hidden');
+                document.getElementById('appContainer').classList.add('flex');
                 startDatabaseListeners();
-            } else {
-                initAuth();
-            }
+            } else { signInAnonymously(auth); }
         });
 
-        // ESCUTADORES DE BANCO DE DADOS (Firestore Real-time)
         function startDatabaseListeners() {
-            if (!currentUser) return;
             const uid = currentUser.uid;
-
-            // 1. Definições de Categorias e Configurações do Utilizador
-            onSnapshot(doc(db, 'artifacts', appId, 'users', uid, 'settings', 'categories'), snap => {
-                const d = snap.data();
-                if (snap.exists()) {
-                    userCategories = d.expenses || [];
-                    incomeCategories = d.incomes || [];
-                    paymentMethods = d.paymentMethods || [];
-                    accountTypes = d.accountTypes || [];
-                } else {
-                    // Seed inicial caso não existam dados
-                    userCategories = ["Habitação", "Alimentação", "Transporte", "Saúde", "Lazer", "Educação"];
-                    incomeCategories = ["Salário", "Freelance", "Rendimentos"];
-                    paymentMethods = ["Multibanco", "Dinheiro", "Cartão Crédito", "Transferência"];
-                    accountTypes = ["Conta Corrente", "Poupança", "Investimentos", "Carteira"];
-                    setDoc(doc(db, 'artifacts', appId, 'users', uid, 'settings', 'categories'), {
-                        expenses: userCategories,
-                        incomes: incomeCategories,
-                        paymentMethods: paymentMethods,
-                        accountTypes: accountTypes
-                    });
-                }
-                updateDynamicSelects();
-                renderCategoryManager();
-                renderTables();
-            }, (err) => console.error("Erro categorias:", err));
-
-            // 2. Escutador de Contas
+            
+            // Ouvinte de Contas (Caminho obrigatório)
             onSnapshot(collection(db, 'artifacts', appId, 'users', uid, 'accounts'), snap => {
                 accounts = [];
                 snap.forEach(d => accounts.push({ id: d.id, ...d.data() }));
@@ -967,36 +661,30 @@
                 calculateMath();
             });
 
-            // 3. Escutador de Transações
+            // Ouvinte de Transações (Caminho obrigatório)
             onSnapshot(collection(db, 'artifacts', appId, 'users', uid, 'transactions'), snap => {
                 transactions = [];
                 snap.forEach(d => transactions.push({ id: d.id, ...d.data() }));
                 renderTables();
                 calculateMath();
-                // Atualizar dashboards apenas se visíveis para performance
                 if (!document.getElementById('annualView').classList.contains('hidden')) renderAnnualDashboard();
                 if (!document.getElementById('installmentsView').classList.contains('hidden')) renderInstallmentsView();
             });
 
-            // 4. Escutador de Saldos de Abertura
+            // Saldos Iniciais
             onSnapshot(doc(db, 'artifacts', appId, 'users', uid, 'settings', 'balances'), snap => {
                 if (snap.exists()) initialBalances = snap.data();
                 calculateMath();
             });
         }
 
-        // --- LÓGICA DE NEGÓCIO E UI ---
-
+        // --- UI NAVEGAÇÃO ---
         window.switchView = (v) => {
-            const views = ['monthly', 'annual', 'installments'];
-            views.forEach(view => {
-                document.getElementById(view + 'View').classList.toggle('hidden', v !== view);
-                const tab = document.getElementById('tab' + view.charAt(0).toUpperCase() + view.slice(1));
-                if (v === view) {
-                    tab.className = "px-4 py-2 rounded-lg text-sm font-bold transition-all bg-emerald-500 text-white shadow-lg shadow-emerald-500/20";
-                } else {
-                    tab.className = "px-4 py-2 rounded-lg text-sm font-bold transition-all text-slate-400 hover:text-white";
-                }
+            ['monthly', 'annual', 'installments'].forEach(view => {
+                const el = document.getElementById(view + 'View');
+                if (el) el.classList.toggle('hidden', v !== view);
+                const btn = document.getElementById('tab' + view.charAt(0).toUpperCase() + view.slice(1));
+                if(btn) btn.className = v === view ? "px-4 py-2 rounded-lg text-sm font-bold transition-all bg-emerald-500 text-white shadow-lg shadow-emerald-500/20" : "px-4 py-2 rounded-lg text-sm font-bold transition-all text-slate-400 hover:text-white";
             });
             if (v === 'annual') renderAnnualDashboard();
             if (v === 'installments') renderInstallmentsView();
@@ -1007,7 +695,6 @@
             [currentYearObj, selectedMonthNum] = m.split('-');
             renderMonthSelector();
             renderTables();
-            renderAccounts();
             calculateMath();
         };
 
@@ -1024,693 +711,363 @@
             let html = '';
             for (let i = 1; i <= 12; i++) {
                 const m = `${currentYearObj}-${String(i).padStart(2, '0')}`;
-                const isActive = currentMonth === m;
-                html += `<button onclick="changeMonth('${m}')" class="month-btn ${isActive ? 'active' : 'inactive'}">${mNames[i - 1]}</button>`;
+                html += `<button onclick="changeMonth('${m}')" class="month-btn ${currentMonth === m ? 'active' : 'inactive'}">${mNames[i - 1]}</button>`;
             }
-            document.getElementById('monthSelectorContainer').innerHTML = html;
-            document.getElementById('currentYearDisplay').innerText = currentYearObj;
+            const container = document.getElementById('monthSelectorContainer');
+            if (container) container.innerHTML = html;
+            const yearDisp = document.getElementById('currentYearDisplay');
+            if (yearDisp) yearDisp.innerText = currentYearObj;
         }
 
+        // --- RENDER TABELAS MENSAL ---
         window.renderTables = () => {
             const list = transactions.filter(t => t.date.startsWith(currentMonth));
-            
-            // Ordenação
-            list.sort((a, b) => {
-                let valA = a[sortCol], valB = b[sortCol];
-                if (sortCol === 'amount') return sortAsc ? valA - valB : valB - valA;
-                if (sortAsc) return String(valA).localeCompare(String(valB));
-                return String(valB).localeCompare(String(valA));
-            });
-
             const incs = list.filter(t => t.type === 'income');
             const exps = list.filter(t => t.type === 'expense');
 
-            // Renderização de Receitas
+            // Receitas
             let hInc = '', totInc = 0;
             incs.forEach(t => {
                 totInc += t.amount;
-                const isSelected = selectedTxs.has(t.id);
-                hInc += `
-                    <tr class="${t.status === 'done' ? 'text-slate-800' : 'text-slate-400 italic'} ${isSelected ? 'bg-emerald-50' : ''}" onclick="editTransaction('${t.id}', event)">
-                        <td class="text-center no-print">
-                            <input type="checkbox" class="custom-checkbox" ${isSelected ? 'checked' : ''} onchange="toggleSelectTx('${t.id}', this.checked)">
-                        </td>
-                        <td class="text-center">
-                            <button onclick="toggleStatus(event, '${t.id}')" class="text-2xl ${t.status === 'done' ? 'text-emerald-500' : 'text-slate-200'} transition-colors">
-                                <i class="ph-fill ph-check-circle"></i>
-                            </button>
-                        </td>
-                        <td class="font-bold">${t.desc}</td>
-                        <td><span class="bg-emerald-100 px-2 py-0.5 rounded text-[10px] font-black text-emerald-700 uppercase">${t.category}</span></td>
-                        <td class="text-right font-black text-emerald-600">${fmt(t.amount)}</td>
-                        <td class="text-center no-print">
-                            <div class="flex items-center justify-center gap-2">
-                                <button onclick="repeatTransaction(event, '${t.id}')" class="text-blue-500 hover:text-blue-700" title="Repetir no próximo mês"><i class="ph-bold ph-arrow-square-out text-lg"></i></button>
-                                <button onclick="deleteTx(event, '${t.id}')" class="text-slate-300 hover:text-rose-500"><i class="ph-fill ph-trash"></i></button>
-                            </div>
-                        </td>
-                    </tr>`;
+                hInc += `<tr><td class="text-center no-print"><input type="checkbox" onchange="toggleSelectTx('${t.id}', this.checked)" class="custom-checkbox"></td><td class="text-center"><button onclick="toggleStatus(event, '${t.id}')" class="text-2xl ${t.status === 'done' ? 'text-emerald-500' : 'text-slate-200'} transition-all"><i class="ph-fill ph-check-circle"></i></button></td><td class="font-bold text-slate-700">${t.desc}</td><td><span class="bg-emerald-100 text-emerald-700 px-2 py-0.5 rounded text-[10px] font-black uppercase">${t.category}</span></td><td class="text-right font-black text-emerald-600">${fmt(t.amount)}</td><td class="text-center no-print"><button onclick="deleteTx(event, '${t.id}')" class="text-slate-300 hover:text-rose-500"><i class="ph-fill ph-trash"></i></button></td></tr>`;
             });
-            document.getElementById('incomeList').innerHTML = hInc || '<tr><td colspan="6" class="text-center py-10 text-slate-400 font-medium">Nenhuma receita registada neste mês.</td></tr>';
-            document.getElementById('totalIncomes').innerText = fmt(totInc);
+            const incEl = document.getElementById('incomeList');
+            if (incEl) incEl.innerHTML = hInc || '<tr><td colspan="6" class="text-center py-6 text-slate-400">Nenhuma receita</td></tr>';
+            const totIncEl = document.getElementById('totalIncomes');
+            if (totIncEl) totIncEl.innerText = fmt(totInc);
 
-            // Renderização de Despesas
-            const filterVal = document.getElementById('filterText').value.toLowerCase();
+            // Despesas
             let hExp = '', totExp = 0, catMap = {};
-            let displayedExpCount = 0;
-
             exps.forEach(t => {
-                if (expenseFilter === 'pending' && t.status === 'done') return;
-                if (filterVal && !t.desc.toLowerCase().includes(filterVal) && !t.category.toLowerCase().includes(filterVal)) return;
-
                 totExp += t.amount;
-                displayedExpCount++;
                 catMap[t.category] = (catMap[t.category] || 0) + t.amount;
-                const isSelected = selectedTxs.has(t.id);
-
-                hExp += `
-                    <tr class="${t.status === 'done' ? '' : 'bg-yellow-50/20'} ${isSelected ? 'bg-emerald-50' : ''}" onclick="editTransaction('${t.id}', event)">
-                        <td class="text-center no-print">
-                            <input type="checkbox" class="custom-checkbox" ${isSelected ? 'checked' : ''} onchange="toggleSelectTx('${t.id}', this.checked)">
-                        </td>
-                        <td class="text-center">
-                            <button onclick="toggleStatus(event, '${t.id}')" class="text-2xl ${t.status === 'done' ? 'text-emerald-500' : 'text-slate-200'} transition-colors">
-                                <i class="ph-fill ph-check-circle"></i>
-                            </button>
-                        </td>
-                        <td class="font-bold text-slate-700">${t.desc}</td>
-                        <td><span class="bg-slate-100 px-2 py-0.5 rounded text-[10px] font-black text-slate-500 uppercase">${t.category}</span></td>
-                        <td class="text-xs font-bold text-slate-500">${t.paymentMethod || '-'}</td>
-                        <td class="text-center">
-                            ${t.parcelado ? '<i class="ph-fill ph-check-circle text-blue-500" title="Item Parcelado"></i>' : '<span class="text-slate-200">-</span>'}
-                        </td>
-                        <td class="text-right font-black text-slate-800">${fmt(t.amount)}</td>
-                        <td class="text-center no-print">
-                            <div class="flex items-center justify-center gap-3">
-                                <button onclick="repeatTransaction(event, '${t.id}')" class="text-blue-500 hover:text-blue-700" title="Copia para o próximo mês"><i class="ph-bold ph-copy text-lg"></i></button>
-                                <button onclick="deleteTx(event, '${t.id}')" class="text-slate-200 hover:text-rose-500"><i class="ph-fill ph-trash text-lg"></i></button>
-                            </div>
-                        </td>
-                    </tr>`;
+                hExp += `<tr class="${t.status === 'done' ? '' : 'bg-yellow-50/20'}"><td class="text-center no-print"><input type="checkbox" onchange="toggleSelectTx('${t.id}', this.checked)" class="custom-checkbox"></td><td class="text-center"><button onclick="toggleStatus(event, '${t.id}')" class="text-2xl ${t.status === 'done' ? 'text-emerald-500' : 'text-slate-200'} transition-all"><i class="ph-fill ph-check-circle"></i></button></td><td class="font-bold text-slate-700">${t.desc}</td><td><span class="bg-slate-100 text-slate-500 px-2 py-0.5 rounded text-[10px] font-black uppercase">${t.category}</span></td><td class="text-xs font-bold text-slate-400">${t.paymentMethod || '-'}</td><td class="text-center">${t.parcelado ? 'Sim' : '-'}</td><td class="text-right font-black text-slate-800">${fmt(t.amount)}</td><td class="text-center no-print"><button onclick="deleteTx(event, '${t.id}')" class="text-slate-300 hover:text-rose-500"><i class="ph-fill ph-trash"></i></button></td></tr>`;
             });
-            document.getElementById('expenseList').innerHTML = hExp || '<tr><td colspan="8" class="text-center py-20 text-slate-400 font-medium"><i class="ph ph-mask-sad text-4xl block mb-2 opacity-20"></i>Nenhuma despesa encontrada para estes filtros.</td></tr>';
-            document.getElementById('totalExpensesAmount').innerText = fmt(totExp);
-            document.getElementById('totalExpensesTable').innerText = fmt(totExp);
-            document.getElementById('expenseCountLabel').innerText = `${displayedExpCount} lançamentos encontrados`;
+            const expEl = document.getElementById('expenseList');
+            if (expEl) expEl.innerHTML = hExp || '<tr><td colspan="8" class="text-center py-10 text-slate-400">Sem registros</td></tr>';
+            
+            const totExpAmEl = document.getElementById('totalExpensesAmount');
+            if (totExpAmEl) totExpAmEl.innerText = fmt(totExp);
+            
+            const expCountEl = document.getElementById('expenseCountLabel');
+            if (expCountEl) expCountEl.innerText = `${exps.length} registros no Brasil`;
 
-            // Atualização do Resumo por Categorias
-            const sortedCats = Object.entries(catMap).sort((a, b) => b[1] - a[1]);
-            const hCat = sortedCats.map(([cat, val]) => {
-                const perc = Math.min(100, (val / totExp) * 100);
-                return `
+            // Categorias (Resumo Lateral)
+            const sortedCats = Object.entries(catMap).sort((a,b) => b[1]-a[1]);
+            const catListEl = document.getElementById('categoryTotalsList');
+            if (catListEl) {
+                catListEl.innerHTML = sortedCats.map(([c, v]) => `
                     <div>
-                        <div class="flex justify-between items-end mb-1">
-                            <span class="text-xs font-black text-slate-700 uppercase tracking-tighter">${cat}</span>
-                            <span class="text-xs font-black text-slate-900">${fmt(val)} <span class="text-[10px] text-slate-400 ml-1">(${perc.toFixed(1)}%)</span></span>
-                        </div>
-                        <div class="w-full bg-slate-100 h-2 rounded-full overflow-hidden">
-                            <div class="bg-rose-500 h-full rounded-full transition-all duration-1000" style="width: ${perc}%"></div>
-                        </div>
-                    </div>`;
-            }).join('');
-            document.getElementById('categoryTotalsList').innerHTML = hCat || '<p class="text-center py-10 text-slate-400 text-xs">Sem dados de categorias.</p>';
+                        <div class="flex justify-between text-xs font-black uppercase tracking-tighter mb-1"><span>${c}</span><span class="text-rose-600">${fmt(v)}</span></div>
+                        <div class="w-full bg-slate-100 h-1.5 rounded-full overflow-hidden"><div class="bg-indigo-500 h-full" style="width: ${Math.min(100, (v/Math.max(1,totExp))*100)}%"></div></div>
+                    </div>
+                `).join('') || '<p class="text-xs text-slate-400">Sem categorias</p>';
+            }
         };
 
-        // CÁLCULOS MATEMÁTICOS DE CONCILIAÇÃO
+        // --- MATEMÁTICA E CONCILIAÇÃO ---
         function calculateMath() {
             const startM = initialBalances.startMonth || '2026-01';
             const sysB = initialBalances.base || 0;
             
-            if (currentMonth < startM) {
-                document.getElementById('conciliationBadge').innerHTML = "<i class='ph ph-lock'></i> Fora do Período";
-                document.getElementById('conciliationBadge').className = "px-4 py-2 rounded-xl text-[10px] font-black uppercase tracking-widest bg-slate-200 text-slate-500";
-                return;
-            }
-            
-            // 1. Calcular Saldo Anterior (Acumulado do Mês Base até o Mês Atual-1)
-            let prevAccumulated = sysB;
+            let prevAcc = sysB;
             transactions.forEach(t => {
                 if (t.status === 'done' && t.date >= startM + '-01' && t.date < currentMonth + '-01') {
-                    if (t.type === 'income') prevAccumulated += t.amount;
-                    else prevAccumulated -= t.amount;
+                    if (t.type === 'income') prevAcc += t.amount;
+                    else prevAcc -= t.amount;
                 }
             });
             
-            // 2. Transações do Mês Atual
-            let curInc = 0, curExp = 0, pendings = 0;
+            let curInc = 0, curExp = 0;
             transactions.filter(t => t.date.startsWith(currentMonth)).forEach(t => {
                 if (t.status === 'done') {
                     if (t.type === 'income') curInc += t.amount;
                     else curExp += t.amount;
-                } else {
-                    pendings++;
                 }
             });
             
-            const expected = prevAccumulated + curInc - curExp;
+            const expected = prevAcc + curInc - curExp;
             
-            // Atualizar UI Lógica
-            document.getElementById('mathLblPrevMonth').innerText = formatMonthLong(currentMonth); // Na verdade é o acumulado até aqui
-            document.getElementById('mathPrevBal').innerText = fmt(prevAccumulated);
-            document.getElementById('mathInc').innerText = fmt(curInc);
-            document.getElementById('mathExp').innerText = fmt(curExp);
-            document.getElementById('mathExpected').innerText = fmt(expected);
+            // Atualizar UI Lógica com verificação de segurança
+            const lblPrev = document.getElementById('mathLblPrevMonth');
+            if (lblPrev) lblPrev.innerText = formatMonthLong(currentMonth);
+            const mathPrev = document.getElementById('mathPrevBal');
+            if (mathPrev) mathPrev.innerText = fmt(prevAcc);
+            const mathInc = document.getElementById('mathInc');
+            if (mathInc) mathInc.innerText = fmt(curInc);
+            const mathExp = document.getElementById('mathExp');
+            if (mathExp) mathExp.innerText = fmt(curExp);
+            const mathExpVal = document.getElementById('mathExpected');
+            if (mathExpVal) mathExpVal.innerText = fmt(expected);
             
-            // 3. Soma das Contas Bancárias (Realidade)
             let bankTotal = 0;
-            accounts.forEach(acc => {
-                bankTotal += (acc.balances && acc.balances[currentMonth]) || 0;
-            });
-            document.getElementById('mathBankTotal').innerText = fmt(bankTotal);
+            accounts.forEach(acc => { bankTotal += (acc.balances && acc.balances[currentMonth]) || 0; });
+            const bankTotEl = document.getElementById('mathBankTotal');
+            if (bankTotEl) bankTotEl.innerText = fmt(bankTotal);
             
-            // 4. Conciliação
             const diff = bankTotal - expected;
             const badge = document.getElementById('conciliationBadge');
             const card = document.getElementById('conciliationCard');
             
-            if (Math.abs(diff) < 0.01) {
-                badge.className = "px-4 py-2 rounded-xl text-[10px] font-black uppercase tracking-widest bg-emerald-100 text-emerald-700 shadow-sm border border-emerald-200";
-                badge.innerHTML = pendings > 0 ? `<i class="ph-fill ph-clock"></i> ${pendings} Pendências` : `<i class="ph-fill ph-check-circle"></i> Mês Conciliado`;
-                
-                card.className = "mt-4 p-3 rounded-xl border border-emerald-500 bg-emerald-500/10 text-emerald-400 text-[10px] font-black uppercase tracking-widest text-center";
-                card.innerHTML = `<i class="ph-bold ph-check"></i> Saldo Matemático Ok`;
-            } else {
-                badge.className = "px-4 py-2 rounded-xl text-[10px] font-black uppercase tracking-widest bg-rose-100 text-rose-700 shadow-sm border border-rose-200";
-                badge.innerHTML = `<i class="ph-fill ph-warning"></i> Divergência: ${fmt(Math.abs(diff))}`;
-                
-                card.className = "mt-4 p-3 rounded-xl border border-rose-500 bg-rose-500/10 text-rose-400 text-[10px] font-black uppercase tracking-widest text-center";
-                card.innerHTML = `<i class="ph-bold ph-x"></i> Desvio detetado`;
+            if (badge && card) {
+                if (Math.abs(diff) < 0.01) {
+                    badge.className = "px-4 py-2 rounded-xl text-xs font-black uppercase bg-emerald-100 text-emerald-700 shadow-sm border border-emerald-200";
+                    badge.innerHTML = "Conciliado OK";
+                    card.className = "mt-4 p-3 rounded-xl border border-emerald-500 bg-emerald-500/10 text-emerald-400 text-[10px] font-black uppercase tracking-widest text-center";
+                    card.innerHTML = "Saldo Bancário coincide com o Lógico";
+                } else {
+                    badge.className = "px-4 py-2 rounded-xl text-xs font-black uppercase bg-rose-100 text-rose-700 shadow-sm border border-rose-200";
+                    badge.innerHTML = `Divergência: ${fmt(Math.abs(diff))}`;
+                    card.className = "mt-4 p-3 rounded-xl border border-rose-500 bg-rose-500/10 text-rose-400 text-[10px] font-black uppercase tracking-widest text-center";
+                    card.innerHTML = "Atenção: Diferença no Saldo Bancário";
+                }
             }
         }
 
-        // DASHBOARD ANUAL: Análise Profunda
+        // --- DASHBOARD ANUAL ---
         function renderAnnualDashboard() {
-            const months = Array.from({length: 12}, (_, i) => String(i + 1).padStart(2, '0'));
-            const mNamesShort = ['Jan', 'Fev', 'Mar', 'Abr', 'Mai', 'Jun', 'Jul', 'Ago', 'Set', 'Out', 'Nov', 'Dez'];
+            const yearLabel = document.getElementById('annualYearLabel');
+            if (yearLabel) yearLabel.innerText = currentYearObj;
+            const monthsShort = ['Jan', 'Fev', 'Mar', 'Abr', 'Mai', 'Jun', 'Jul', 'Ago', 'Set', 'Out', 'Nov', 'Dez'];
             
-            let totYInc = 0, totYExp = 0;
-            let mIncData = new Array(12).fill(0);
-            let mExpData = new Array(12).fill(0);
+            let mIncData = new Array(12).fill(0), mExpData = new Array(12).fill(0);
             let catMatrix = {};
-            
-            // Inicializar matriz de categorias
-            [...userCategories, ...incomeCategories].forEach(c => {
-                catMatrix[c] = new Array(12).fill(0);
-            });
-            
+            [...userCategories, ...incomeCategories].forEach(c => catMatrix[c] = new Array(12).fill(0));
+
             transactions.filter(t => t.date.startsWith(currentYearObj) && t.status === 'done').forEach(t => {
-                const midx = parseInt(t.date.split('-')[1]) - 1;
-                if (t.type === 'income') {
-                    totYInc += t.amount;
-                    mIncData[midx] += t.amount;
-                } else {
-                    totYExp += t.amount;
-                    mExpData[midx] += t.amount;
-                }
-                if (catMatrix[t.category]) catMatrix[t.category][midx] += t.amount;
+                const parts = t.date.split('-');
+                const midx = parseInt(parts[1]) - 1;
+                if(t.type === 'income') { mIncData[midx] += t.amount; } 
+                else { mExpData[midx] += t.amount; }
+                if(catMatrix[t.category]) catMatrix[t.category][midx] += t.amount;
             });
 
-            // Atualizar Indicadores
-            document.getElementById('annualTotalInc').innerText = fmt(totYInc);
-            document.getElementById('annualTotalExp').innerText = fmt(totYExp);
-            document.getElementById('annualTotalCash').innerText = fmt(totYInc - totYExp);
-            document.getElementById('annualSavingsRate').innerText = (totYInc > 0 ? ((totYInc - totYExp) / totYInc) * 100 : 0).toFixed(1) + '%';
-            document.getElementById('annualMonthlyAvg').innerText = fmt(totYExp / 12);
-            document.getElementById('annualCustomAvg').innerText = fmt(totYExp / (new Date().getMonth() + 1));
-            document.getElementById('annualEfficiency').innerText = totYInc > totYExp ? "SUPERÁVIT" : "DÉFICE";
-            document.getElementById('annualEfficiency').className = `text-xl font-black ${totYInc > totYExp ? 'text-emerald-400' : 'text-rose-400'}`;
+            const annTotInc = document.getElementById('annualTotalInc');
+            if (annTotInc) annTotInc.innerText = fmt(mIncData.reduce((a,b)=>a+b,0));
+            const annTotExp = document.getElementById('annualTotalExp');
+            if (annTotExp) annTotExp.innerText = fmt(mExpData.reduce((a,b)=>a+b,0));
 
-            // 1. Tabela Matriz
-            let hTable = `
-                <thead>
-                    <tr>
-                        <th class="text-left bg-slate-100">CATEGORIA</th>
-                        ${mNamesShort.map(n => `<th class="text-center bg-slate-50">${n}</th>`).join('')}
-                        <th class="bg-slate-900 text-white">TOTAL</th>
-                    </tr>
-                </thead>
-                <tbody>`;
+            // Gráfico Barras (Cashflow)
+            const barCtx = document.getElementById('cashFlowChart');
+            if (barCtx) {
+                if(chartInstanceCashFlow) chartInstanceCashFlow.destroy();
+                chartInstanceCashFlow = new Chart(barCtx.getContext('2d'), {
+                    type: 'bar',
+                    data: {
+                        labels: monthsShort,
+                        datasets: [
+                            { label: 'RECEITAS', data: mIncData, backgroundColor: '#10b981', borderRadius: 6 },
+                            { label: 'DESPESAS', data: mExpData, backgroundColor: '#f43f5e', borderRadius: 6 }
+                        ]
+                    },
+                    options: { responsive: true, maintainAspectRatio: false }
+                });
+            }
 
-            // Linhas de Receitas
-            hTable += `<tr><td colspan="14" class="bg-emerald-50 text-emerald-800 text-[10px] font-black uppercase p-2 tracking-widest">Entradas Consolidadas</td></tr>`;
-            incomeCategories.forEach(cat => {
-                const vals = catMatrix[cat] || [];
-                const rowSum = vals.reduce((a, b) => a + b, 0);
-                if (rowSum === 0) return;
-                hTable += `
-                    <tr>
-                        <td class="font-bold text-slate-600">${cat}</td>
-                        ${vals.map(v => `<td class="${v > 0 ? 'text-emerald-600 font-medium' : 'text-slate-200'}">${v > 0 ? fmt(v) : '-'}</td>`).join('')}
-                        <td class="bg-emerald-100 text-emerald-800 font-black">${fmt(rowSum)}</td>
-                    </tr>`;
-            });
-
-            // Linhas de Despesas
-            hTable += `<tr><td colspan="14" class="bg-rose-50 text-rose-800 text-[10px] font-black uppercase p-2 tracking-widest">Saídas Detalhadas</td></tr>`;
+            // Tabela Matriz Detalhada
+            let hTable = `<thead><tr><th class="text-left bg-slate-100">CATEGORIA</th>${monthsShort.map(n => `<th class="text-center bg-slate-50">${n}</th>`).join('')}<th class="bg-slate-900 text-white">TOTAL</th></tr></thead><tbody>`;
             userCategories.forEach(cat => {
-                const vals = catMatrix[cat] || [];
-                const rowSum = vals.reduce((a, b) => a + b, 0);
-                if (rowSum === 0) return;
-                hTable += `
-                    <tr>
-                        <td class="font-bold text-slate-600">${cat}</td>
-                        ${vals.map(v => `<td class="${v > 0 ? 'text-rose-600 font-medium' : 'text-slate-200'}">${v > 0 ? fmt(v) : '-'}</td>`).join('')}
-                        <td class="bg-rose-100 text-rose-800 font-black">${fmt(rowSum)}</td>
-                    </tr>`;
+                const vals = catMatrix[cat];
+                const sum = vals.reduce((a,b)=>a+b,0);
+                if(sum === 0) return;
+                hTable += `<tr><td class="font-bold text-slate-600">${cat}</td>${vals.map(v => `<td class="${v > 0 ? 'text-rose-500 font-medium' : 'text-slate-200'}">${v > 0 ? fmt(v) : '-'}</td>`).join('')}<td class="bg-rose-50 text-rose-800 font-black">${fmt(sum)}</td></tr>`;
             });
             hTable += `</tbody>`;
-            document.getElementById('annualMatrixTable').innerHTML = hTable;
-
-            // 2. Gráfico de Barras (Fluxo)
-            if (chartInstanceCashFlow) chartInstanceCashFlow.destroy();
-            const ctxBar = document.getElementById('cashFlowChart').getContext('2d');
-            chartInstanceCashFlow = new Chart(ctxBar, {
-                type: 'bar',
-                data: {
-                    labels: mNamesShort,
-                    datasets: [
-                        { label: 'RECEITAS', data: mIncData, backgroundColor: '#10b981', borderRadius: 8 },
-                        { label: 'DESPESAS', data: mExpData, backgroundColor: '#f43f5e', borderRadius: 8 }
-                    ]
-                },
-                options: {
-                    responsive: true,
-                    maintainAspectRatio: false,
-                    plugins: { legend: { position: 'bottom', labels: { font: { weight: 'bold' } } } },
-                    scales: { y: { beginAtZero: true, grid: { display: false } }, x: { grid: { display: false } } }
-                }
-            });
-
-            // 3. Gráfico de Rosca (Categorias)
-            const topCats = Object.entries(catMatrix)
-                .filter(([c, _]) => userCategories.includes(c))
-                .map(([c, vals]) => [c, vals.reduce((a, b) => a + b, 0)])
-                .sort((a, b) => b[1] - a[1])
-                .slice(0, 5);
-
-            if (chartInstanceDonut) chartInstanceDonut.destroy();
-            const ctxDonut = document.getElementById('expenseDonutChart').getContext('2d');
-            chartInstanceDonut = new Chart(ctxDonut, {
-                type: 'doughnut',
-                data: {
-                    labels: topCats.map(c => c[0]),
-                    datasets: [{
-                        data: topCats.map(c => c[1]),
-                        backgroundColor: ['#6366f1', '#f43f5e', '#10b981', '#f59e0b', '#3b82f6'],
-                        borderWidth: 0
-                    }]
-                },
-                options: {
-                    responsive: true,
-                    maintainAspectRatio: false,
-                    plugins: { legend: { position: 'bottom', labels: { boxWidth: 10, font: { size: 10, weight: 'bold' } } } },
-                    cutout: '70%'
-                }
-            });
+            const annMat = document.getElementById('annualMatrixTable');
+            if (annMat) annMat.innerHTML = hTable;
         }
 
-        // VISÃO PARCELAS: Projeção de Dívida
+        // --- VISÃO PARCELAS ---
         function renderInstallmentsView() {
             const list = transactions.filter(t => t.parcelado);
-            let hTable = '';
-            let totalDebt = 0;
-            let catSummary = {};
-
-            list.forEach(t => {
-                totalDebt += t.amount;
-                catSummary[t.category] = (catSummary[t.category] || 0) + t.amount;
-                
-                hTable += `
-                    <tr>
-                        <td class="font-bold text-slate-700">${t.desc}</td>
-                        <td><span class="bg-slate-100 px-2 py-0.5 rounded text-[10px] font-black text-slate-500 uppercase">${t.category}</span></td>
-                        <td class="text-center"><span class="font-black text-blue-600">ATIVO</span></td>
-                        <td class="text-right font-black">${fmt(t.amount)}</td>
-                        <td class="text-right font-black text-slate-400">${fmt(t.amount)}</td>
-                        <td class="text-center font-bold text-slate-500">${t.date}</td>
-                    </tr>`;
-            });
-            document.getElementById('installmentsList').innerHTML = hTable || '<tr><td colspan="6" class="text-center py-20 text-slate-400">Nenhum parcelamento ativo registado.</td></tr>';
-            document.getElementById('installmentsTotalDebt').innerText = fmt(totalDebt);
-
-            // Resumo por categoria no ecrã de parcelas
-            document.getElementById('installmentsCategorySummary').innerHTML = Object.entries(catSummary).map(([cat, val]) => `
-                <div class="flex justify-between items-center text-xs">
-                    <span class="font-bold text-slate-500 uppercase">${cat}</span>
-                    <span class="font-black text-slate-800">${fmt(val)}</span>
-                </div>
-            `).join('') || '<p class="text-center text-slate-400 text-xs">Sem dados.</p>';
-
-            // Projeção dos próximos 6 meses (Simulação)
-            let hProj = '';
-            for (let i = 0; i < 6; i++) {
-                let d = new Date(); d.setMonth(d.getMonth() + i);
-                let mLabel = d.toLocaleString('pt-PT', { month: 'short' }).toUpperCase();
-                hProj += `
-                    <div class="stat-card min-w-[140px] flex flex-col items-center">
-                        <span class="text-[10px] font-black text-slate-400 mb-1">${mLabel} ${d.getFullYear()}</span>
-                        <span class="text-lg font-black text-rose-600">${fmt(totalDebt / (6-i))}</span>
-                    </div>`;
+            let total = 0;
+            const instList = document.getElementById('installmentsList');
+            if (instList) {
+                instList.innerHTML = list.map(t => {
+                    total += t.amount;
+                    return `<tr><td class="font-bold text-slate-700">${t.desc}</td><td>${t.category}</td><td class="text-right text-blue-600 font-black">ATIVA</td><td class="text-center font-bold text-slate-400">${t.date}</td><td class="text-right font-black">${fmt(t.amount)}</td></tr>`;
+                }).join('') || '<tr><td colspan="5" class="text-center py-20 text-slate-400">Nenhum parcelamento ativo</td></tr>';
             }
-            document.getElementById('installmentsProjectionGrid').innerHTML = hProj;
+            const instTot = document.getElementById('installmentsTotalDebt');
+            if (instTot) instTot.innerText = fmt(total);
         }
 
-        // --- GESTÃO DE DADOS E EVENTOS ---
-
+        // --- OPERAÇÕES CRUD ---
         window.openTransactionModal = () => {
             editingTxId = null;
-            document.getElementById('transactionForm').reset();
-            document.getElementById('transactionModalTitle').innerText = "Registo Financeiro";
-            document.getElementById('formDate').value = new Date().toISOString().split('T')[0];
+            const form = document.getElementById('transactionForm');
+            if (form) form.reset();
+            const dateEl = document.getElementById('formDate');
+            if (dateEl) dateEl.value = new Date().toISOString().split('T')[0];
             updateFormUI();
             openModal('transactionModal');
         };
 
-        window.editTransaction = (id, e) => {
-            if (e.target.closest('button') || e.target.tagName === 'INPUT') return;
-            const t = transactions.find(x => x.id === id);
-            if (!t) return;
-
-            editingTxId = id;
-            document.getElementById('transactionModalTitle').innerText = "Editar Registo";
-            document.querySelector(`input[name="formType"][value="${t.type}"]`).checked = true;
-            updateFormUI();
-            
-            document.getElementById('formDesc').value = t.desc;
-            document.getElementById('formAmount').value = t.amount;
-            document.getElementById('formDate').value = t.date;
-            document.getElementById('formCategory').value = t.category;
-            document.getElementById('formPaymentMethod').value = t.paymentMethod;
-            document.getElementById('formStatus').checked = t.status === 'done';
-            document.getElementById('formParcel').checked = t.parcelado;
-            
-            openModal('transactionModal');
-        };
-
-        window.saveBaseBalance = async () => {
-            const data = {
-                base: parseFloat(document.getElementById('sysBaseBalanceInput').value) || 0,
-                startMonth: document.getElementById('sysStartMonthInput').value
-            };
-            if (!data.startMonth) return alert("Define um mês de início.");
-            await setDoc(doc(db, 'artifacts', appId, 'users', currentUser.uid, 'settings', 'balances'), data);
-            closeModal('baseBalanceModal');
+        window.updateFormUI = () => {
+            const typeEl = document.querySelector('input[name="formType"]:checked');
+            if (!typeEl) return;
+            const type = typeEl.value;
+            const lblStatus = document.getElementById('lblFormStatus');
+            if (lblStatus) lblStatus.innerText = type === 'income' ? 'RECEBIDO' : 'PAGO';
+            const catEl = document.getElementById('formCategory');
+            if (catEl) catEl.innerHTML = (type === 'income' ? incomeCategories : userCategories).map(c => `<option value="${c}">${c}</option>`).join('');
+            const payEl = document.getElementById('formPaymentMethod');
+            if (payEl) payEl.innerHTML = paymentMethods.map(p => `<option value="${p}">${p}</option>`).join('');
+            const parEl = document.getElementById('parcelLabel');
+            if (parEl) parEl.style.display = type === 'expense' ? 'flex' : 'none';
         };
 
         window.toggleStatus = async (e, id) => {
             e.stopPropagation();
             const t = transactions.find(x => x.id === id);
-            if (!t) return;
-            await updateDoc(doc(db, 'artifacts', appId, 'users', currentUser.uid, 'transactions', id), {
-                status: t.status === 'done' ? 'pending' : 'done'
-            });
+            if (t) {
+                await updateDoc(doc(db, 'artifacts', appId, 'users', currentUser.uid, 'transactions', id), { 
+                    status: t.status === 'done' ? 'pending' : 'done' 
+                });
+            }
         };
 
         window.deleteTx = async (e, id) => {
             e.stopPropagation();
-            if (confirm("Tens a certeza que desejas eliminar este registo permanentemente?")) {
+            if(confirm("Excluir registro permanentemente?")) {
                 await deleteDoc(doc(db, 'artifacts', appId, 'users', currentUser.uid, 'transactions', id));
             }
         };
 
-        window.repeatTransaction = async (e, id) => {
-            e.stopPropagation();
-            const t = transactions.find(x => x.id === id);
-            if (!t) return;
-            
-            // Gerar nova data (mês seguinte)
-            const [y, m, d] = t.date.split('-');
-            let dateObj = new Date(y, m - 1, d);
-            dateObj.setMonth(dateObj.getMonth() + 1);
-            const nextDate = dateObj.toISOString().split('T')[0];
-            
-            const copy = { ...t, date: nextDate, status: 'pending' };
-            delete copy.id;
-            
-            await setDoc(doc(db, 'artifacts', appId, 'users', currentUser.uid, 'transactions', 'tx_' + Date.now()), copy);
-        };
-
-        // GESTÃO DE CONTAS BANCÁRIAS
+        // --- GESTÃO DE CONTAS ---
         window.renderAccounts = () => {
             const grid = document.getElementById('accountsGrid');
-            grid.innerHTML = '';
-            
-            accountTypes.forEach(type => {
-                const list = accounts.filter(a => a.type === type);
-                if (list.length === 0) return;
-                
-                let html = `<div class="col-span-full text-[9px] font-black text-slate-400 uppercase tracking-widest mt-4 border-b pb-1">${type}</div>`;
-                list.forEach(acc => {
-                    const balance = (acc.balances && acc.balances[currentMonth]) || 0;
-                    html += `
-                        <div class="bg-slate-50 border-2 border-slate-100 rounded-xl p-3 group relative hover:border-blue-200 transition-all">
-                            <button onclick="deleteAccount('${acc.id}')" class="absolute -top-2 -right-2 w-6 h-6 bg-rose-500 text-white rounded-full opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center text-xs shadow-lg">
-                                <i class="ph-bold ph-x"></i>
-                            </button>
-                            <span class="block text-[10px] font-black text-slate-500 uppercase tracking-tighter truncate">${acc.name}</span>
-                            <div class="flex items-center gap-1 mt-1">
-                                <span class="text-[10px] font-bold text-slate-400">€</span>
-                                <input type="number" step="0.01" value="${balance.toFixed(2)}" onchange="updateAccBalance('${acc.id}', this.value)" class="w-full bg-transparent text-sm font-black text-slate-800 outline-none border-b border-transparent focus:border-blue-400">
+            if (grid) {
+                grid.innerHTML = accounts.map(acc => {
+                    const bal = (acc.balances && acc.balances[currentMonth]) || 0;
+                    return `
+                        <div class="bg-slate-50 border-2 border-slate-100 rounded-xl p-3 relative group hover:border-indigo-200 transition-all">
+                            <button onclick="deleteAccount('${acc.id}')" class="absolute -top-2 -right-2 text-rose-500 opacity-0 group-hover:opacity-100 transition-all"><i class="ph-fill ph-x-circle text-xl"></i></button>
+                            <span class="block text-[10px] font-black text-slate-400 uppercase tracking-tighter">${acc.name}</span>
+                            <div class="flex items-center gap-1">
+                                <span class="text-xs font-bold text-slate-300">R$</span>
+                                <input type="number" step="0.01" value="${bal.toFixed(2)}" onchange="updateAccBalance('${acc.id}', this.value)" class="w-full bg-transparent font-black text-slate-800 outline-none">
                             </div>
                         </div>`;
-                });
-                grid.innerHTML += html;
-            });
+                }).join('') || '<p class="text-xs text-slate-400">Nenhuma conta</p>';
+            }
+            const accType = document.getElementById('accType');
+            if (accType) accType.innerHTML = accountTypes.map(t => `<option value="${t}">${t}</option>`).join('');
         };
 
         window.updateAccBalance = async (id, val) => {
-            await updateDoc(doc(db, 'artifacts', appId, 'users', currentUser.uid, 'accounts', id), {
-                [`balances.${currentMonth}`]: parseFloat(val) || 0
+            await updateDoc(doc(db, 'artifacts', appId, 'users', currentUser.uid, 'accounts', id), { 
+                [`balances.${currentMonth}`]: parseFloat(val) || 0 
             });
         };
 
-        window.deleteAccount = async (id) => {
-            if (confirm("Eliminar esta conta? Histórico de saldos será perdido.")) {
-                await deleteDoc(doc(db, 'artifacts', appId, 'users', currentUser.uid, 'accounts', id));
+        window.deleteAccount = async id => { 
+            if(confirm("Deseja remover esta conta?")) {
+                await deleteDoc(doc(db, 'artifacts', appId, 'users', currentUser.uid, 'accounts', id)); 
             }
         };
 
-        // GESTÃO EM LOTE
-        window.toggleSelectTx = (id, checked) => {
-            if (checked) selectedTxs.add(id);
-            else selectedTxs.delete(id);
-            updateBulkUI();
-        };
-
-        window.toggleSelectAll = (type, checked) => {
-            const list = transactions.filter(t => t.date.startsWith(currentMonth) && t.type === type);
-            list.forEach(t => checked ? selectedTxs.add(t.id) : selectedTxs.delete(t.id));
-            updateBulkUI();
-            renderTables();
-        };
-
-        function updateBulkUI() {
-            const count = selectedTxs.size;
-            document.getElementById('bulkActionCount').innerText = count;
-            const bar = document.getElementById('bulkActionBar');
-            if (count > 0) bar.classList.remove('translate-y-40');
-            else bar.classList.add('translate-y-40');
-        }
-
-        window.clearSelection = () => {
-            selectedTxs.clear();
-            updateBulkUI();
-            renderTables();
-            document.getElementById('selectAllInc').checked = false;
-            document.getElementById('selectAllExp').checked = false;
-        };
-
-        window.bulkMarkAsPaid = async () => {
-            const batch = writeBatch(db);
-            selectedTxs.forEach(id => {
-                batch.update(doc(db, 'artifacts', appId, 'users', currentUser.uid, 'transactions', id), { status: 'done' });
+        // --- IMPORTAÇÃO EM LOTE ---
+        window.processPaste = () => {
+            const pasteArea = document.getElementById('bulkPasteArea');
+            if (!pasteArea) return;
+            const text = pasteArea.value;
+            const lines = text.split('\n');
+            pendingBulkItems = [];
+            lines.forEach((l, i) => {
+                const parts = l.split('\t').map(p => p.trim());
+                if(parts.length >= 2) {
+                    const desc = parts[0];
+                    const val = parseFloat(parts[1].replace(/[R$\s.]/g, '').replace(',', '.')) || 0;
+                    const cat = parts[2] || "Outros";
+                    pendingBulkItems.push({ desc, val, cat });
+                }
             });
-            await batch.commit();
-            clearSelection();
+            const revCont = document.getElementById('bulkReviewContainer');
+            if (pendingBulkItems.length && revCont) {
+                revCont.classList.remove('hidden');
+                const revList = document.getElementById('bulkReviewList');
+                if (revList) {
+                    revList.innerHTML = pendingBulkItems.map((it, idx) => `<tr><td class="font-bold">${it.desc}</td><td class="text-rose-600">${fmt(it.val)}</td><td>${it.cat}</td><td><button onclick="removeBulkItem(${idx})" class="text-rose-500"><i class="ph-bold ph-trash"></i></button></td></tr>`).join('');
+                }
+            }
         };
 
-        window.bulkDelete = async () => {
-            if (!confirm(`Desejas eliminar ${selectedTxs.size} registos selecionados?`)) return;
-            const batch = writeBatch(db);
-            selectedTxs.forEach(id => {
-                batch.delete(doc(db, 'artifacts', appId, 'users', currentUser.uid, 'transactions', id));
-            });
-            await batch.commit();
-            clearSelection();
+        window.removeBulkItem = idx => { 
+            pendingBulkItems.splice(idx,1); 
+            const revList = document.getElementById('bulkReviewList');
+            if (revList) revList.innerHTML = pendingBulkItems.map((it, idx) => `<tr><td class="font-bold">${it.desc}</td><td class="text-rose-600">${fmt(it.val)}</td><td>${it.cat}</td><td><button onclick="removeBulkItem(${idx})" class="text-rose-500"><i class="ph-bold ph-trash"></i></button></td></tr>`).join('');
         };
 
-        // GESTÃO DE CONFIGURAÇÕES
-        window.renderCategoryManager = () => {
-            const listExp = document.getElementById('manageExpList');
-            const listInc = document.getElementById('manageIncList');
-            if (!listExp || !listInc) return;
-
-            listExp.innerHTML = userCategories.map(c => `
-                <div class="flex justify-between items-center p-3 bg-slate-50 border-2 border-slate-100 rounded-xl text-xs font-bold group">
-                    <span class="text-slate-700 uppercase tracking-tighter">${c}</span>
-                    <button onclick="removeConfigItem('expense', '${c}')" class="text-slate-300 hover:text-rose-500 transition-colors"><i class="ph-fill ph-trash"></i></button>
-                </div>`).join('');
-            
-            listInc.innerHTML = incomeCategories.map(c => `
-                <div class="flex justify-between items-center p-3 bg-slate-50 border-2 border-slate-100 rounded-xl text-xs font-bold group">
-                    <span class="text-slate-700 uppercase tracking-tighter">${c}</span>
-                    <button onclick="removeConfigItem('income', '${c}')" class="text-slate-300 hover:text-rose-500 transition-colors"><i class="ph-fill ph-trash"></i></button>
-                </div>`).join('');
-        };
-
-        window.addConfigItem = async (type) => {
-            const input = type === 'expense' ? document.getElementById('newCatExp') : document.getElementById('newCatInc');
-            const val = input.value.trim();
-            if (!val) return;
-            
-            if (type === 'expense' && !userCategories.includes(val)) userCategories.push(val);
-            if (type === 'income' && !incomeCategories.includes(val)) incomeCategories.push(val);
-            
-            await setDoc(doc(db, 'artifacts', appId, 'users', currentUser.uid, 'settings', 'categories'), {
-                expenses: userCategories, incomes: incomeCategories, paymentMethods, accountTypes
-            });
-            input.value = '';
-        };
-
-        window.removeConfigItem = async (type, val) => {
-            if (type === 'expense') userCategories = userCategories.filter(c => c !== val);
-            if (type === 'income') incomeCategories = incomeCategories.filter(c => c !== val);
-            
-            await setDoc(doc(db, 'artifacts', appId, 'users', currentUser.uid, 'settings', 'categories'), {
-                expenses: userCategories, incomes: incomeCategories, paymentMethods, accountTypes
-            });
-        };
-
-        // SEED DE DEMONSTRAÇÃO
-        window.generateDemoData = async () => {
-            if (!confirm("Isto irá apagar todos os teus dados atuais e carregar uma demo. Continuar?")) return;
+        window.saveBulkTransactions = async () => {
             const batch = writeBatch(db);
             const uid = currentUser.uid;
-
-            // Limpar transações
-            const qs = await getDocs(collection(db, 'artifacts', appId, 'users', uid, 'transactions'));
-            qs.forEach(d => batch.delete(d.ref));
-
-            // Limpar contas
-            const qsA = await getDocs(collection(db, 'artifacts', appId, 'users', uid, 'accounts'));
-            qsA.forEach(d => batch.delete(d.ref));
-
-            // Inserir Saldo Base
-            batch.set(doc(db, 'artifacts', appId, 'users', uid, 'settings', 'balances'), { base: 1000, startMonth: `${currentYearObj}-01` });
-
-            // Inserir Conta
-            batch.set(doc(db, 'artifacts', appId, 'users', uid, 'accounts', 'acc_main'), { 
-                name: 'Conta Ordenado', type: 'Conta Corrente', balances: { [`${currentYearObj}-01`]: 1200 } 
+            pendingBulkItems.forEach(it => {
+                const id = 'tx_bulk_' + Date.now() + Math.random().toString(36).substr(2,5);
+                const docRef = doc(db, 'artifacts', appId, 'users', uid, 'transactions', id);
+                batch.set(docRef, { type: 'expense', desc: it.desc, amount: Math.abs(it.val), date: `${currentMonth}-01`, category: it.cat, status: 'pending', parcelado: false });
             });
-
-            // Inserir Transação Exemplo
-            batch.set(doc(db, 'artifacts', appId, 'users', uid, 'transactions', 'tx_demo'), {
-                type: 'income', desc: 'Vencimento Janeiro', amount: 1500, category: 'Salário', date: `${currentYearObj}-01-25`, status: 'done', paymentMethod: 'Transferência'
-            });
-
             await batch.commit();
-            location.reload();
+            closeModal('importModal');
         };
 
-        // EXPORTAÇÃO CSV PROFISSIONAL
-        window.exportToCSV = () => {
-            const list = transactions.filter(t => t.date.startsWith(currentMonth));
-            if (!list.length) return alert("Nenhum dado para exportar neste mês.");
-            
-            let csv = "\uFEFFData;Tipo;Descricao;Categoria;Pagamento;Valor;Status\n";
-            list.forEach(t => {
-                const status = t.status === 'done' ? (t.type === 'income' ? 'Recebido' : 'Pago') : 'Pendente';
-                csv += `${t.date};${t.type === 'income' ? 'Receita' : 'Despesa'};"${t.desc}";"${t.category}";"${t.paymentMethod || '-'}";${t.amount.toFixed(2).replace('.', ',')};${status}\n`;
-            });
-
-            const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
-            const link = document.createElement("a");
-            link.href = URL.createObjectURL(blob);
-            link.download = `Relatorio_FinFamily_${currentMonth}.csv`;
-            link.click();
-        };
-
-        // UTILITÁRIOS DE UI
-        window.updateDynamicSelects = () => {
-            document.getElementById('accType').innerHTML = accountTypes.map(t => `<option value="${t}">${t}</option>`).join('');
-            document.getElementById('formPaymentMethod').innerHTML = paymentMethods.map(p => `<option value="${p}">${p}</option>`).join('');
-            updateFormUI();
-        };
-
-        window.updateFormUI = () => {
-            const type = document.querySelector('input[name="formType"]:checked').value;
-            document.getElementById('lblFormStatus').innerText = type === 'income' ? 'Recebido' : 'Pago';
-            document.getElementById('formCategory').innerHTML = (type === 'income' ? incomeCategories : userCategories).map(c => `<option value="${c}">${c}</option>`).join('');
-            document.getElementById('parcelLabel').style.display = type === 'expense' ? 'flex' : 'none';
-        };
-
+        // --- UTILITÁRIOS MODAIS ---
         window.openModal = id => {
             const m = document.getElementById(id), c = document.getElementById(id + 'Content');
-            if (id === 'baseBalanceModal') {
-                document.getElementById('sysBaseBalanceInput').value = initialBalances.base || 0;
-                document.getElementById('sysStartMonthInput').value = initialBalances.startMonth || '';
-            }
+            if (!m || !c) return;
             m.classList.remove('hidden');
             setTimeout(() => { m.classList.remove('opacity-0'); c.classList.remove('scale-95'); }, 10);
+            if(id === 'baseBalanceModal') {
+                const bVal = document.getElementById('sysBaseBalanceInput');
+                if (bVal) bVal.value = initialBalances.base || 0;
+                const sMonth = document.getElementById('sysStartMonthInput');
+                if (sMonth) sMonth.value = initialBalances.startMonth || '';
+            }
         };
-
         window.closeModal = id => {
             const m = document.getElementById(id), c = document.getElementById(id + 'Content');
-            m.classList.add('opacity-0');
-            c.classList.add('scale-95');
+            if (!m || !c) return;
+            m.classList.add('opacity-0'); c.classList.add('scale-95');
             setTimeout(() => m.classList.add('hidden'), 200);
         };
 
-        window.toggleSort = (col) => {
-            if (sortCol === col) sortAsc = !sortAsc;
-            else { sortCol = col; sortAsc = true; }
-            renderTables();
+        window.saveBaseBalance = async () => {
+            const baseValEl = document.getElementById('sysBaseBalanceInput');
+            const baseVal = parseFloat(baseValEl.value) || 0;
+            const startMonthEl = document.getElementById('sysStartMonthInput');
+            const startMonth = startMonthEl.value;
+            await setDoc(doc(db, 'artifacts', appId, 'users', currentUser.uid, 'settings', 'balances'), { base: baseVal, startMonth });
+            closeModal('baseBalanceModal');
         };
 
-        // BOOTSTRAP DE EVENTOS
-        document.addEventListener('DOMContentLoaded', () => {
-            renderMonthSelector();
-            
-            // Submissão de Transação
-            document.getElementById('transactionForm').addEventListener('submit', async e => {
-                e.preventDefault();
-                const type = document.querySelector('input[name="formType"]:checked').value;
-                const data = {
-                    type,
-                    desc: document.getElementById('formDesc').value,
-                    amount: parseFloat(document.getElementById('formAmount').value) || 0,
-                    date: document.getElementById('formDate').value,
-                    category: document.getElementById('formCategory').value,
-                    paymentMethod: document.getElementById('formPaymentMethod').value,
-                    status: document.getElementById('formStatus').checked ? 'done' : 'pending',
-                    parcelado: document.getElementById('formParcel').checked
-                };
-
-                if (editingTxId) {
-                    await updateDoc(doc(db, 'artifacts', appId, 'users', currentUser.uid, 'transactions', editingTxId), data);
-                } else {
-                    await setDoc(doc(db, 'artifacts', appId, 'users', currentUser.uid, 'transactions', 'tx_' + Date.now()), data);
-                }
-                closeModal('transactionModal');
-            });
-
-            // Submissão de Conta
-            document.getElementById('accountForm').addEventListener('submit', async e => {
-                e.preventDefault();
-                const data = {
-                    name: document.getElementById('accName').value,
-                    type: document.getElementById('accType').value,
-                    balances: {}
-                };
-                await setDoc(doc(db, 'artifacts', appId, 'users', currentUser.uid, 'accounts', 'acc_' + Date.now()), data);
-                closeModal('accountModal');
-            });
+        // --- SUBMIT FORMS ---
+        document.getElementById('transactionForm').addEventListener('submit', async e => {
+            e.preventDefault();
+            const type = document.querySelector('input[name="formType"]:checked').value;
+            const data = {
+                type,
+                desc: document.getElementById('formDesc').value,
+                amount: parseFloat(document.getElementById('formAmount').value) || 0,
+                date: document.getElementById('formDate').value,
+                category: document.getElementById('formCategory').value,
+                paymentMethod: document.getElementById('formPaymentMethod').value,
+                status: document.getElementById('formStatus').checked ? 'done' : 'pending',
+                parcelado: document.getElementById('formParcel').checked
+            };
+            await setDoc(doc(db, 'artifacts', appId, 'users', currentUser.uid, 'transactions', 'tx_' + Date.now()), data);
+            closeModal('transactionModal');
         });
 
-        window.onbeforeprint = () => {
-            document.getElementById('printMonthLabel').innerText = formatMonthLong(currentMonth).toUpperCase();
-            document.getElementById('printCurrentDate').innerText = new Date().toLocaleString();
-        };
+        document.getElementById('accountForm').addEventListener('submit', async e => {
+            e.preventDefault();
+            const data = { name: document.getElementById('accName').value, type: document.getElementById('accType').value, balances: {} };
+            await setDoc(doc(db, 'artifacts', appId, 'users', currentUser.uid, 'accounts', 'acc_' + Date.now()), data);
+            closeModal('accountModal');
+        });
+
+        document.addEventListener('DOMContentLoaded', () => {
+            renderMonthSelector();
+        });
     </script>
 </body>
 </html>
