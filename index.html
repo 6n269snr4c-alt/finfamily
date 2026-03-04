@@ -281,6 +281,9 @@
                         <button onclick="openModal('importModal')" class="bg-slate-50 hover:bg-indigo-50 text-slate-600 hover:text-indigo-700 px-4 py-2 rounded-xl text-xs font-bold border border-slate-200 transition-all flex items-center gap-2">
                             <i class="ph-bold ph-list-plus text-lg"></i> IMPORTAR LOTE
                         </button>
+                        <button onclick="exportToCSV()" class="bg-slate-50 hover:bg-emerald-50 text-slate-600 hover:text-emerald-700 px-4 py-2 rounded-xl text-xs font-bold border border-slate-200 transition-all flex items-center gap-2">
+                            <i class="ph-bold ph-microsoft-excel text-lg"></i> EXPORTAR
+                        </button>
                         <button onclick="window.print()" class="bg-slate-900 hover:bg-slate-800 text-white px-4 py-2 rounded-xl text-xs font-bold transition-all flex items-center gap-2">
                             <i class="ph-bold ph-printer text-lg"></i> IMPRIMIR
                         </button>
@@ -644,14 +647,17 @@
         let accounts = [];
         let transactions = [];
         let initialBalances = {};
-        let userCategories = ["Habitação", "Alimentação", "Transporte", "Saúde", "Lazer", "Educação", "Assinaturas", "Mercado", "Farmácia", "Presentes", "Outros"];
-        let incomeCategories = ["Salário", "Freelance", "Rendimentos", "Vendas", "Outros"];
+        let userCategories = ["Despesas com Carro", "Despesas Eventuais", "Gasolina", "Jiu Jitsu", "EscolaCondom/Energia/Internet/Telefone", "Despesas Mensais", "Doações", "Visto e Passaporte", "Antecipação Carro", "Roupas e Calçados", "Mercado", "Planos de Saúde", "Farmácia", "Móveis e Coisas pra Casa", "Lazer", "Lanches", "Presentes", "Casa Praia", "Assinaturas"];
+        let incomeCategories = ["Salário", "Rendimento Investimentos", "Outras Receitas"];
         let paymentMethods = ["Pix", "Dinheiro", "Crédito", "Débito", "Transferência"];
         let accountTypes = ["Corrente", "Poupança", "Investimentos", "Carteira"];
 
         let currentYearObj = new Date().getFullYear();
         let selectedMonthNum = String(new Date().getMonth() + 1).padStart(2, '0');
         let currentMonth = `${currentYearObj}-${selectedMonthNum}`;
+        let selectedTxs = new Set();
+        let chartInstanceCashFlow = null;
+        let chartInstanceDonut = null;
         let pendingBulkItems = [];
         let isLoginMode = true;
 
@@ -728,7 +734,7 @@
                 snap.forEach(d => accounts.push({ id: d.id, ...d.data() }));
                 renderAccounts();
                 calculateMath();
-            });
+            }, (err) => console.error("Erro contas:", err));
 
             // Ouvinte de Transações
             onSnapshot(collection(db, 'artifacts', appId, 'users', uid, 'transactions'), snap => {
@@ -738,7 +744,7 @@
                 calculateMath();
                 if (!document.getElementById('annualView').classList.contains('hidden')) renderAnnualDashboard();
                 if (!document.getElementById('installmentsView').classList.contains('hidden')) renderInstallmentsView();
-            });
+            }, (err) => console.error("Erro transações:", err));
 
             // Saldos Iniciais
             onSnapshot(doc(db, 'artifacts', appId, 'users', uid, 'settings', 'balances'), snap => {
@@ -790,7 +796,8 @@
 
         // --- RENDERIZADORES ---
         window.renderTables = () => {
-            const list = transactions.filter(t => t.date.startsWith(currentMonth));
+            const filter = document.getElementById('filterText') ? document.getElementById('filterText').value.toLowerCase() : "";
+            const list = transactions.filter(t => t.date.startsWith(currentMonth) && t.desc.toLowerCase().includes(filter));
             const incs = list.filter(t => t.type === 'income');
             const exps = list.filter(t => t.type === 'expense');
 
@@ -798,7 +805,7 @@
             let hInc = '', totInc = 0;
             incs.forEach(t => {
                 totInc += t.amount;
-                hInc += `<tr><td class="text-center no-print"><input type="checkbox" onchange="toggleSelectTx('${t.id}', this.checked)" class="custom-checkbox"></td><td class="text-center"><button onclick="toggleStatus(event, '${t.id}')" class="text-2xl ${t.status === 'done' ? 'text-emerald-500' : 'text-slate-200'} transition-all"><i class="ph-fill ph-check-circle"></i></button></td><td class="font-bold text-slate-700">${t.desc}</td><td><span class="bg-emerald-100 text-emerald-700 px-2 py-0.5 rounded text-[10px] font-black uppercase tracking-tighter">${t.category}</span></td><td class="text-right font-black text-emerald-600">${fmt(t.amount)}</td><td class="text-center no-print"><button onclick="deleteTx(event, '${t.id}')" class="text-slate-300 hover:text-rose-500"><i class="ph-fill ph-trash"></i></button></td></tr>`;
+                hInc += `<tr><td class="text-center no-print"><input type="checkbox" onchange="toggleSelectTx('${t.id}', this.checked)" class="custom-checkbox" ${selectedTxs.has(t.id) ? 'checked' : ''}></td><td class="text-center"><button onclick="toggleStatus(event, '${t.id}')" class="text-2xl ${t.status === 'done' ? 'text-emerald-500' : 'text-slate-200'} transition-all"><i class="ph-fill ph-check-circle"></i></button></td><td class="font-bold text-slate-700">${t.desc}</td><td><span class="bg-emerald-100 text-emerald-700 px-2 py-0.5 rounded text-[10px] font-black uppercase tracking-tighter">${t.category}</span></td><td class="text-right font-black text-emerald-600">${fmt(t.amount)}</td><td class="text-center no-print"><button onclick="deleteTx(event, '${t.id}')" class="text-slate-300 hover:text-rose-500"><i class="ph-fill ph-trash"></i></button></td></tr>`;
             });
             const incEl = document.getElementById('incomeList');
             if (incEl) incEl.innerHTML = hInc || '<tr><td colspan="6" class="text-center py-6 text-slate-400">Nenhuma entrada</td></tr>';
@@ -810,7 +817,7 @@
             exps.forEach(t => {
                 totExp += t.amount;
                 catMap[t.category] = (catMap[t.category] || 0) + t.amount;
-                hExp += `<tr class="${t.status === 'done' ? '' : 'bg-yellow-50/20'}"><td class="text-center no-print"><input type="checkbox" onchange="toggleSelectTx('${t.id}', this.checked)" class="custom-checkbox"></td><td class="text-center"><button onclick="toggleStatus(event, '${t.id}')" class="text-2xl ${t.status === 'done' ? 'text-emerald-500' : 'text-slate-200'} transition-all"><i class="ph-fill ph-check-circle"></i></button></td><td class="font-bold text-slate-700">${t.desc}</td><td><span class="bg-slate-100 text-slate-500 px-2 py-0.5 rounded text-[10px] font-black uppercase tracking-tighter">${t.category}</span></td><td class="text-xs font-bold text-slate-400 uppercase tracking-tighter">${t.paymentMethod || '-'}</td><td class="text-center">${t.parcelado ? 'Sim' : '-'}</td><td class="text-right font-black text-slate-800">${fmt(t.amount)}</td><td class="text-center no-print"><button onclick="deleteTx(event, '${t.id}')" class="text-slate-300 hover:text-rose-500"><i class="ph-fill ph-trash"></i></button></td></tr>`;
+                hExp += `<tr class="${t.status === 'done' ? '' : 'bg-yellow-50/20'}"><td class="text-center no-print"><input type="checkbox" onchange="toggleSelectTx('${t.id}', this.checked)" class="custom-checkbox" ${selectedTxs.has(t.id) ? 'checked' : ''}></td><td class="text-center"><button onclick="toggleStatus(event, '${t.id}')" class="text-2xl ${t.status === 'done' ? 'text-emerald-500' : 'text-slate-200'} transition-all"><i class="ph-fill ph-check-circle"></i></button></td><td class="font-bold text-slate-700">${t.desc}</td><td><span class="bg-slate-100 text-slate-500 px-2 py-0.5 rounded text-[10px] font-black uppercase tracking-tighter">${t.category}</span></td><td class="text-xs font-bold text-slate-400 uppercase tracking-tighter">${t.paymentMethod || '-'}</td><td class="text-center">${t.parcelado ? 'Sim' : '-'}</td><td class="text-right font-black text-slate-800">${fmt(t.amount)}</td><td class="text-center no-print"><button onclick="deleteTx(event, '${t.id}')" class="text-slate-300 hover:text-rose-500"><i class="ph-fill ph-trash"></i></button></td></tr>`;
             });
             const expEl = document.getElementById('expenseList');
             if (expEl) expEl.innerHTML = hExp || '<tr><td colspan="8" class="text-center py-10 text-slate-400">Sem gastos registrados</td></tr>';
@@ -830,6 +837,7 @@
                     </div>
                 `).join('') || '<p class="text-xs text-slate-400">Sem categorias</p>';
             }
+            updateBulkActionBar();
         };
 
         function calculateMath() {
@@ -854,7 +862,6 @@
             
             const expected = prevAcc + curInc - curExp;
             
-            // UI
             const lblPrev = document.getElementById('mathLblPrevMonth');
             if (lblPrev) lblPrev.innerText = formatMonthLong(currentMonth);
             const mathPrev = document.getElementById('mathPrevBal');
@@ -913,7 +920,6 @@
             const annTotExp = document.getElementById('annualTotalExp');
             if (annTotExp) annTotExp.innerText = fmt(mExpData.reduce((a,b)=>a+b,0));
 
-            // Gráfico Barras
             const barCtx = document.getElementById('cashFlowChart');
             if (barCtx) {
                 if(chartInstanceCashFlow) chartInstanceCashFlow.destroy();
@@ -930,7 +936,30 @@
                 });
             }
 
-            // Tabela Matriz
+            // Donut Chart logic
+            const donutCtx = document.getElementById('expenseDonutChart');
+            if (donutCtx) {
+                const topCats = Object.entries(catMatrix)
+                    .filter(([c]) => userCategories.includes(c))
+                    .map(([c, vals]) => [c, vals.reduce((a,b)=>a+b,0)])
+                    .sort((a,b) => b[1]-a[1])
+                    .slice(0, 5);
+                
+                if (chartInstanceDonut) chartInstanceDonut.destroy();
+                chartInstanceDonut = new Chart(donutCtx.getContext('2d'), {
+                    type: 'doughnut',
+                    data: {
+                        labels: topCats.map(c => c[0]),
+                        datasets: [{
+                            data: topCats.map(c => c[1]),
+                            backgroundColor: ['#6366f1', '#10b981', '#f59e0b', '#ef4444', '#3b82f6'],
+                            borderWidth: 0
+                        }]
+                    },
+                    options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { position: 'bottom' } } }
+                });
+            }
+
             let hTable = `<thead><tr><th class="text-left bg-slate-100 uppercase text-[10px]">Categoria</th>${monthsShort.map(n => `<th class="text-center bg-slate-50 uppercase text-[10px]">${n}</th>`).join('')}<th class="bg-slate-900 text-white uppercase text-[10px]">Total</th></tr></thead><tbody>`;
             userCategories.forEach(cat => {
                 const vals = catMatrix[cat];
@@ -957,7 +986,70 @@
             if (instTot) instTot.innerText = fmt(total);
         }
 
-        // --- OPERAÇÕES ---
+        // --- SELEÇÃO EM LOTE ---
+        window.toggleSelectAll = (type, checked) => {
+            const list = transactions.filter(t => t.date.startsWith(currentMonth) && t.type === type);
+            list.forEach(t => checked ? selectedTxs.add(t.id) : selectedTxs.delete(t.id));
+            renderTables();
+        };
+
+        window.toggleSelectTx = (id, checked) => {
+            checked ? selectedTxs.add(id) : selectedTxs.delete(id);
+            updateBulkActionBar();
+        };
+
+        function updateBulkActionBar() {
+            const bar = document.getElementById('bulkActionBar');
+            const count = document.getElementById('bulkActionCount');
+            if (selectedTxs.size > 0) {
+                count.innerText = selectedTxs.size;
+                bar.classList.remove('translate-y-40');
+            } else {
+                bar.classList.add('translate-y-40');
+            }
+        }
+
+        window.clearSelection = () => {
+            selectedTxs.clear();
+            renderTables();
+        };
+
+        window.bulkMarkAsPaid = async () => {
+            const batch = writeBatch(db);
+            selectedTxs.forEach(id => {
+                const ref = doc(db, 'artifacts', appId, 'users', currentUser.uid, 'transactions', id);
+                batch.update(ref, { status: 'done' });
+            });
+            await batch.commit();
+            clearSelection();
+        };
+
+        window.bulkDelete = async () => {
+            if (!confirm(`Excluir definitivamente ${selectedTxs.size} registros?`)) return;
+            const batch = writeBatch(db);
+            selectedTxs.forEach(id => {
+                const ref = doc(db, 'artifacts', appId, 'users', currentUser.uid, 'transactions', id);
+                batch.delete(ref);
+            });
+            await batch.commit();
+            clearSelection();
+        };
+
+        // --- EXPORTAR CSV ---
+        window.exportToCSV = () => {
+            const list = transactions.filter(t => t.date.startsWith(currentMonth));
+            let csv = "Data;Descricao;Categoria;Valor;Status;Tipo\n";
+            list.forEach(t => {
+                csv += `${t.date};${t.desc};${t.category};${t.amount.toFixed(2)};${t.status};${t.type}\n`;
+            });
+            const blob = new Blob(["\ufeff" + csv], { type: 'text/csv;charset=utf-8;' });
+            const link = document.createElement("a");
+            link.href = URL.createObjectURL(blob);
+            link.download = `finfamily_${currentMonth}.csv`;
+            link.click();
+        };
+
+        // --- OPERAÇÕES CRUD ---
         window.openTransactionModal = () => {
             const form = document.getElementById('transactionForm');
             if (form) form.reset();
@@ -1036,7 +1128,7 @@
                 if(parts.length >= 2) {
                     const desc = parts[0];
                     const val = parseFloat(parts[1].replace(/[R$\s.]/g, '').replace(',', '.')) || 0;
-                    const cat = parts[2] || "Outros";
+                    const cat = parts[2] || "Despesas Eventuais";
                     pendingBulkItems.push({ desc, val, cat });
                 }
             });
