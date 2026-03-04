@@ -825,12 +825,40 @@
         import { getAuth, onAuthStateChanged, signInWithCustomToken, signInAnonymously } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
         import { getFirestore, collection, doc, setDoc, deleteDoc, updateDoc, onSnapshot, writeBatch, getDocs } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
 
-        // Configuração segura fornecida pelo ambiente
-        const firebaseConfig = JSON.parse(__firebase_config);
+        // =====================================================================
+        // CONFIGURAÇÃO DO FIREBASE (PARA DEPLOY EXTERNO COMO VERCEL)
+        // Se você estiver no Vercel, preencha este objeto abaixo com os dados
+        // do seu Firebase Console para o app funcionar fora do Canvas.
+        // =====================================================================
+        const manualFirebaseConfig = {
+            apiKey: "",
+            authDomain: "",
+            projectId: "",
+            storageBucket: "",
+            messagingSenderId: "",
+            appId: ""
+        };
+
+        // Lógica para detectar se estamos no Canvas ou em ambiente externo
+        let firebaseConfig;
+        try {
+            // Tenta usar a configuração injetada automaticamente (Canvas)
+            firebaseConfig = JSON.parse(__firebase_config);
+        } catch (e) {
+            // Se falhar (fora do Canvas), usa a configuração manual
+            firebaseConfig = manualFirebaseConfig;
+        }
+
         const app = initializeApp(firebaseConfig);
         const auth = getAuth(app);
         const db = getFirestore(app);
-        const appId = typeof __app_id !== 'undefined' ? __app_id : 'finfamily-v1';
+        
+        let appId;
+        try {
+            appId = typeof __app_id !== 'undefined' ? __app_id : 'finfamily-v1';
+        } catch (e) {
+            appId = 'finfamily-v1'; // Fallback para deploy externo
+        }
 
         // VARIÁVEIS DE ESTADO GLOBAL
         let currentUser = null;
@@ -871,8 +899,11 @@
         // INICIALIZAÇÃO E AUTENTICAÇÃO
         const initAuth = async () => {
             try {
-                if (typeof __initial_auth_token !== 'undefined' && __initial_auth_token) {
-                    await signInWithCustomToken(auth, __initial_auth_token);
+                let token;
+                try { token = __initial_auth_token; } catch (e) { token = null; }
+
+                if (token) {
+                    await signInWithCustomToken(auth, token);
                 } else {
                     await signInAnonymously(auth);
                 }
