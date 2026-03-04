@@ -155,7 +155,6 @@
             box-shadow: 0 10px 15px -3px rgba(0,0,0,0.1);
         }
 
-        /* CONFIGURAÇÃO DE IMPRESSÃO */
         @media print {
             .no-print { display: none !important; }
             body { background: white; overflow: visible; padding: 0; margin: 0; }
@@ -166,38 +165,62 @@
             table { font-size: 9pt !important; width: 100% !important; border-collapse: collapse !important; }
             th, td { border: 1px solid #e2e8f0 !important; padding: 6px !important; }
             .grid { display: block !important; }
-            .col-span-full, .lg\:col-span-7, .lg\:col-span-5 { width: 100% !important; margin-bottom: 2rem !important; }
         }
     </style>
 </head>
 <body class="antialiased h-screen flex flex-col overflow-hidden relative">
 
-    <!-- Cabeçalho para Relatórios Impressos -->
-    <div class="hidden print-header bg-white p-6">
-        <div class="flex justify-between items-center">
-            <div>
-                <h1 class="text-3xl font-extrabold text-slate-900 tracking-tight">FinFamily</h1>
-                <p class="text-slate-500 font-medium">Relatório de Gestão Financeira Familiar</p>
-            </div>
-            <div class="text-right">
-                <p class="font-bold text-xl text-emerald-600" id="printMonthLabel">Mês de Referência</p>
-                <p class="text-xs text-slate-400">Extraído em: <span id="printCurrentDate"></span></p>
-            </div>
-        </div>
-    </div>
-
-    <!-- Tela de Carregamento Inicial -->
+    <!-- ==================== TELA DE CARREGAMENTO ==================== -->
     <div id="loadingScreen" class="fixed inset-0 bg-slate-950 z-[100] flex flex-col items-center justify-center text-white transition-opacity duration-500">
         <div class="relative">
             <i class="ph-fill ph-wallet text-emerald-400 text-7xl animate-bounce"></i>
             <div class="absolute -top-2 -right-2 w-4 h-4 bg-rose-500 rounded-full animate-ping"></div>
         </div>
         <h1 class="text-3xl font-black mt-6 tracking-tighter uppercase">FIN<span class="text-emerald-400">FAMILY</span></h1>
-        <p class="text-slate-400 text-sm mt-2 font-medium tracking-widest uppercase">Sincronizando dados no Brasil...</p>
+        <p class="text-slate-400 text-sm mt-2 font-medium tracking-widest uppercase">Acessando Banco de Dados Brasil...</p>
         <div class="loader mt-8"></div>
     </div>
 
-    <!-- Container Principal da Aplicação -->
+    <!-- ==================== TELA DE LOGIN / CADASTRO ==================== -->
+    <div id="authScreen" class="fixed inset-0 bg-slate-900 z-50 flex items-center justify-center p-4 hidden">
+        <div class="bg-white p-8 rounded-3xl shadow-2xl w-full max-w-md border border-slate-100 transform transition-all">
+            <div class="flex flex-col items-center mb-8">
+                <div class="bg-emerald-500 p-4 rounded-2xl shadow-lg shadow-emerald-500/20 mb-4">
+                    <i class="ph-fill ph-wallet text-white text-4xl"></i>
+                </div>
+                <h1 class="text-3xl font-black text-slate-800 tracking-tighter uppercase">FIN<span class="text-emerald-500">FAMILY</span></h1>
+                <p class="text-slate-400 text-sm font-medium">Gestão Financeira Familiar</p>
+            </div>
+            
+            <h2 id="authTitle" class="text-xl font-black text-center text-slate-700 mb-6 uppercase tracking-tight">Entrar na Conta</h2>
+            
+            <form id="authForm" class="space-y-4">
+                <div class="space-y-1">
+                    <label class="text-xs font-black text-slate-400 uppercase tracking-widest ml-1">E-mail</label>
+                    <input type="email" id="authEmail" required placeholder="seu@email.com" class="w-full bg-slate-50 border-2 border-slate-100 rounded-2xl px-4 py-3 font-bold outline-none focus:border-emerald-500 transition-all">
+                </div>
+                <div class="space-y-1">
+                    <label class="text-xs font-black text-slate-400 uppercase tracking-widest ml-1">Senha</label>
+                    <input type="password" id="authPassword" required placeholder="••••••••" class="w-full bg-slate-50 border-2 border-slate-100 rounded-2xl px-4 py-3 font-bold outline-none focus:border-emerald-500 transition-all">
+                </div>
+                
+                <p id="authError" class="text-rose-500 text-xs font-bold text-center hidden"></p>
+                
+                <button type="submit" id="authSubmitBtn" class="w-full bg-slate-900 text-white font-black py-4 rounded-2xl hover:bg-slate-800 transition-all shadow-xl shadow-slate-900/20 flex justify-center items-center h-14 uppercase tracking-widest">
+                    Acessar
+                </button>
+            </form>
+            
+            <div class="mt-8 text-center">
+                <p class="text-sm text-slate-400 font-medium">
+                    <span id="authToggleText">Não tem conta?</span>
+                    <button onclick="toggleAuthMode()" class="text-emerald-600 font-black hover:underline ml-1 uppercase text-xs" id="authToggleBtn">Criar conta</button>
+                </p>
+            </div>
+        </div>
+    </div>
+
+    <!-- ==================== APP PRINCIPAL ==================== -->
     <div id="appContainer" class="hidden flex-col h-full w-full relative">
         
         <!-- Navbar Superior -->
@@ -226,8 +249,8 @@
             </div>
             
             <div class="flex items-center gap-3 pl-6 shrink-0">
-                <button onclick="openModal('categoryManageModal')" class="w-10 h-10 flex items-center justify-center bg-slate-800 text-slate-400 hover:text-white hover:bg-slate-700 rounded-xl transition-all" title="Configurações">
-                    <i class="ph-fill ph-sliders text-xl"></i>
+                <button onclick="logout()" class="w-10 h-10 flex items-center justify-center bg-slate-800 text-slate-400 hover:text-rose-400 hover:bg-slate-700 rounded-xl transition-all" title="Sair do Sistema">
+                    <i class="ph-bold ph-sign-out text-xl"></i>
                 </button>
                 <div class="h-6 w-px bg-slate-700 mx-1"></div>
                 <button onclick="openTransactionModal()" class="bg-emerald-500 hover:bg-emerald-400 active:scale-95 text-white px-5 py-2.5 rounded-xl text-sm font-bold shadow-lg shadow-emerald-500/20 transition-all flex items-center gap-2">
@@ -240,7 +263,7 @@
         <!-- VISÃO MENSAL -->
         <main id="monthlyView" class="flex-1 overflow-y-auto p-4 md:p-8 flex flex-col gap-8 w-full max-w-screen-2xl mx-auto pb-32">
             
-            <!-- Controlador de Tempo e Ações Rápidas -->
+            <!-- Controlador de Tempo -->
             <section class="flex flex-col xl:flex-row justify-between items-start xl:items-center bg-white p-5 rounded-2xl shadow-sm border border-slate-200 gap-6 no-print">
                 <div class="flex items-center gap-4 flex-1 w-full overflow-hidden">
                     <div class="flex items-center bg-slate-100 p-1 rounded-xl shrink-0">
@@ -257,9 +280,6 @@
                     <div class="flex gap-2">
                         <button onclick="openModal('importModal')" class="bg-slate-50 hover:bg-indigo-50 text-slate-600 hover:text-indigo-700 px-4 py-2 rounded-xl text-xs font-bold border border-slate-200 transition-all flex items-center gap-2">
                             <i class="ph-bold ph-list-plus text-lg"></i> IMPORTAR LOTE
-                        </button>
-                        <button onclick="exportToCSV()" class="bg-slate-50 hover:bg-emerald-50 text-slate-600 hover:text-emerald-700 px-4 py-2 rounded-xl text-xs font-bold border border-slate-200 transition-all flex items-center gap-2">
-                            <i class="ph-bold ph-microsoft-excel text-lg"></i> EXPORTAR
                         </button>
                         <button onclick="window.print()" class="bg-slate-900 hover:bg-slate-800 text-white px-4 py-2 rounded-xl text-xs font-bold transition-all flex items-center gap-2">
                             <i class="ph-bold ph-printer text-lg"></i> IMPRIMIR
@@ -356,7 +376,7 @@
                                         <th>Descrição</th>
                                         <th>Categoria</th>
                                         <th class="text-right">Valor</th>
-                                        <th class="w-16 text-center no-print">Ação</th>
+                                        <th class="w-16 text-center no-print">Ações</th>
                                     </tr>
                                 </thead>
                                 <tbody id="incomeList"></tbody>
@@ -396,13 +416,13 @@
                             <p class="text-xs text-slate-500 font-medium" id="expenseCountLabel">0 registros encontrados</p>
                         </div>
                     </div>
-                    <!-- Fix para evitar erros de ID inexistente -->
+                    <!-- Elemento escondido para compatibilidade de ID -->
                     <p id="totalExpensesTable" class="hidden">R$ 0,00</p>
 
                     <div class="flex flex-wrap items-center gap-3 w-full md:w-auto no-print">
                         <div class="relative flex-1 md:w-64">
                             <i class="ph ph-magnifying-glass absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400"></i>
-                            <input type="text" id="filterText" oninput="renderTables()" placeholder="Procurar..." class="w-full pl-10 pr-4 py-2.5 bg-slate-100 border-none rounded-xl text-sm outline-none focus:ring-2 focus:ring-rose-400 transition-all">
+                            <input type="text" id="filterText" oninput="renderTables()" placeholder="Procurar transação..." class="w-full pl-10 pr-4 py-2.5 bg-slate-100 border-none rounded-xl text-sm outline-none focus:ring-2 focus:ring-rose-400 transition-all">
                         </div>
                     </div>
                 </div>
@@ -434,7 +454,7 @@
             <header class="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
                 <div>
                     <h2 class="text-3xl font-black text-slate-900 tracking-tighter">Resumo Anual <span id="annualYearLabel"></span></h2>
-                    <p class="text-slate-500 font-medium">Visão consolidada do ano fiscal</p>
+                    <p class="text-slate-500 font-medium">Balanço consolidado do ano</p>
                 </div>
                 <div class="flex gap-4">
                     <div class="stat-card border-l-4 border-emerald-500">
@@ -450,25 +470,22 @@
 
             <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
                 <div class="lg:col-span-2 bg-white rounded-3xl p-8 shadow-sm border border-slate-200">
-                    <h3 class="font-black text-slate-800 mb-6 flex items-center gap-2">
-                        <i class="ph-fill ph-chart-bar text-emerald-500"></i> Fluxo Mensal
-                    </h3>
+                    <h3 class="font-black text-slate-800 mb-6 uppercase text-sm tracking-widest">Fluxo de Caixa Mensal</h3>
                     <div class="h-[350px]"><canvas id="cashFlowChart"></canvas></div>
                 </div>
                 <div class="bg-white rounded-3xl p-8 shadow-sm border border-slate-200">
-                    <h3 class="font-black text-slate-800 mb-6 flex items-center gap-2">
-                        <i class="ph-fill ph-chart-donut text-rose-500"></i> Top 5 Categorias
-                    </h3>
+                    <h3 class="font-black text-slate-800 mb-6 uppercase text-sm tracking-widest">Distribuição por Categoria</h3>
                     <div class="h-[350px]"><canvas id="expenseDonutChart"></canvas></div>
                 </div>
             </div>
 
             <div class="bg-white rounded-3xl shadow-sm border border-slate-200 overflow-hidden">
+                <div class="p-6 bg-slate-800 text-white font-black uppercase text-xs tracking-widest">Matriz Comparativa Anual</div>
                 <div class="overflow-x-auto">
                     <table class="w-full annual-table" id="annualMatrixTable"></table>
                 </div>
             </div>
-            <!-- Escondidos para evitar erros de JavaScript por ID ausente -->
+            <!-- IDs extras para compatibilidade -->
             <div class="hidden">
                 <p id="annualSavingsRate"></p><p id="annualMonthlyAvg"></p><p id="annualEfficiency"></p><p id="annualTotalCash"></p>
             </div>
@@ -495,35 +512,33 @@
             </div>
         </main>
 
-        <!-- Barra de Ações Lote -->
+        <!-- Barra Ações Lote -->
         <div id="bulkActionBar" class="fixed bottom-8 left-1/2 -translate-x-1/2 bg-slate-900 text-white px-8 py-5 rounded-3xl shadow-2xl transform translate-y-40 transition-transform duration-500 z-50 flex items-center gap-10 border border-slate-800 no-print">
             <div class="flex items-center gap-4">
-                <div class="w-12 h-12 bg-emerald-500 rounded-2xl flex items-center justify-center shadow-lg shadow-emerald-500/20">
-                    <span id="bulkActionCount" class="font-black text-xl">0</span>
-                </div>
+                <div class="w-12 h-12 bg-emerald-500 rounded-2xl flex items-center justify-center shadow-lg"><span id="bulkActionCount" class="font-black text-xl">0</span></div>
                 <p class="text-sm font-black uppercase">Selecionados</p>
             </div>
             <div class="flex gap-3">
-                <button onclick="bulkMarkAsPaid()" class="bg-emerald-600 hover:bg-emerald-500 px-6 py-2.5 rounded-xl text-xs font-black">PAGAR</button>
-                <button onclick="bulkDelete()" class="bg-rose-600 hover:bg-rose-500 px-6 py-2.5 rounded-xl text-xs font-black">EXCLUIR</button>
+                <button onclick="bulkMarkAsPaid()" class="bg-emerald-600 px-6 py-2.5 rounded-xl text-xs font-black">PAGAR</button>
+                <button onclick="bulkDelete()" class="bg-rose-600 px-6 py-2.5 rounded-xl text-xs font-black">EXCLUIR</button>
                 <button onclick="clearSelection()" class="w-10 h-10 bg-slate-800 rounded-xl flex items-center justify-center"><i class="ph ph-x"></i></button>
             </div>
         </div>
     </div>
 
-    <!-- MODAIS -->
+    <!-- ==================== MODAIS ==================== -->
 
     <!-- Modal Lote -->
     <div id="importModal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-md hidden z-[70] flex justify-center items-start pt-10 px-4 transition-all">
         <div class="bg-white rounded-3xl shadow-2xl w-full max-w-4xl overflow-hidden transform scale-95 transition-all mb-10" id="importModalContent">
             <div class="p-6 border-b bg-slate-50 flex justify-between items-center">
-                <h3 class="font-black text-slate-800 uppercase">Importação Rápida</h3>
-                <button onclick="closeModal('importModal')" class="text-slate-400"><i class="ph-bold ph-x text-2xl"></i></button>
+                <h3 class="font-black text-slate-800 uppercase tracking-tighter">Importação em Lote</h3>
+                <button onclick="closeModal('importModal')" class="text-slate-400 hover:text-rose-500"><i class="ph-bold ph-x text-2xl"></i></button>
             </div>
             <div class="p-8 space-y-6">
                 <p class="text-xs text-slate-500 font-medium italic">Cole sua lista: Descrição [TAB] Valor [TAB] Categoria</p>
                 <textarea id="bulkPasteArea" rows="6" class="w-full bg-slate-50 border-2 border-slate-100 rounded-2xl p-4 font-mono text-sm outline-none focus:border-indigo-500 transition-all"></textarea>
-                <button onclick="processPaste()" class="w-full bg-indigo-600 text-white font-black py-4 rounded-2xl shadow-lg shadow-indigo-600/20">PROCESSAR</button>
+                <button onclick="processPaste()" class="w-full bg-indigo-600 text-white font-black py-4 rounded-2xl shadow-lg shadow-indigo-600/20">PROCESSAR TEXTO</button>
                 <div id="bulkReviewContainer" class="hidden space-y-4">
                     <div class="max-h-[300px] overflow-y-auto border rounded-2xl">
                         <table class="w-full text-left expense-table">
@@ -540,31 +555,35 @@
     <!-- Modal Lançamento -->
     <div id="transactionModal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-md hidden z-[60] flex justify-center items-center opacity-0 transition-all p-4">
         <div class="bg-white rounded-3xl shadow-2xl w-full max-w-lg overflow-hidden transform scale-95 transition-all" id="transactionModalContent">
+            <div class="p-6 border-b bg-slate-50 flex justify-between items-center">
+                <h3 class="font-black text-slate-800 uppercase tracking-tighter">Novo Registro</h3>
+                <button onclick="closeModal('transactionModal')" class="text-slate-400 hover:text-rose-500"><i class="ph-bold ph-x text-2xl"></i></button>
+            </div>
             <form id="transactionForm" class="p-8 space-y-6">
                 <div class="grid grid-cols-2 gap-4">
                     <label class="cursor-pointer group">
                         <input type="radio" name="formType" value="expense" checked class="sr-only" onchange="updateFormUI()">
-                        <div class="flex items-center justify-center gap-2 p-4 border-2 border-slate-100 rounded-2xl group-has-[:checked]:bg-rose-50 group-has-[:checked]:border-rose-500 font-black text-sm">DESPESA</div>
+                        <div class="flex items-center justify-center gap-2 p-4 border-2 border-slate-100 rounded-2xl group-has-[:checked]:bg-rose-50 group-has-[:checked]:border-rose-500 font-black text-sm tracking-widest">DESPESA</div>
                     </label>
                     <label class="cursor-pointer group">
                         <input type="radio" name="formType" value="income" class="sr-only" onchange="updateFormUI()">
-                        <div class="flex items-center justify-center gap-2 p-4 border-2 border-slate-100 rounded-2xl group-has-[:checked]:bg-emerald-50 group-has-[:checked]:border-emerald-500 font-black text-sm">RECEITA</div>
+                        <div class="flex items-center justify-center gap-2 p-4 border-2 border-slate-100 rounded-2xl group-has-[:checked]:bg-emerald-50 group-has-[:checked]:border-emerald-500 font-black text-sm tracking-widest">RECEITA</div>
                     </label>
                 </div>
-                <input type="text" id="formDesc" required placeholder="Ex: Supermercado" class="w-full bg-slate-50 border-2 rounded-xl px-4 py-3 font-bold">
+                <input type="text" id="formDesc" required placeholder="Descrição (ex: Supermercado)" class="w-full bg-slate-50 border-2 rounded-xl px-4 py-3 font-bold outline-none focus:border-emerald-500">
                 <div class="grid grid-cols-2 gap-4">
-                    <input type="number" step="0.01" id="formAmount" required placeholder="Valor R$" class="w-full bg-slate-50 border-2 rounded-xl px-4 py-3 font-bold">
-                    <input type="date" id="formDate" required class="w-full bg-slate-50 border-2 rounded-xl px-4 py-3 font-bold">
+                    <input type="number" step="0.01" id="formAmount" required placeholder="Valor R$" class="w-full bg-slate-50 border-2 rounded-xl px-4 py-3 font-bold outline-none focus:border-emerald-500">
+                    <input type="date" id="formDate" required class="w-full bg-slate-50 border-2 rounded-xl px-4 py-3 font-bold outline-none focus:border-emerald-500">
                 </div>
                 <div class="grid grid-cols-2 gap-4">
-                    <select id="formCategory" class="w-full bg-slate-50 border-2 rounded-xl px-4 py-3 font-bold"></select>
-                    <select id="formPaymentMethod" class="w-full bg-slate-50 border-2 rounded-xl px-4 py-3 font-bold"></select>
+                    <select id="formCategory" class="w-full bg-slate-50 border-2 rounded-xl px-4 py-3 font-bold outline-none focus:border-emerald-500"></select>
+                    <select id="formPaymentMethod" class="w-full bg-slate-50 border-2 rounded-xl px-4 py-3 font-bold outline-none focus:border-emerald-500"></select>
                 </div>
                 <div class="flex items-center justify-between p-4 bg-slate-50 rounded-2xl border">
-                    <label class="flex items-center gap-2 font-black text-xs uppercase"><input type="checkbox" id="formStatus" class="custom-checkbox"> <span id="lblFormStatus">PAGO</span></label>
-                    <label class="flex items-center gap-2 font-black text-xs uppercase" id="parcelLabel"><input type="checkbox" id="formParcel" class="custom-checkbox"> PARCELADO</label>
+                    <label class="flex items-center gap-2 font-black text-xs uppercase tracking-widest"><input type="checkbox" id="formStatus" class="custom-checkbox"> <span id="lblFormStatus">PAGO</span></label>
+                    <label class="flex items-center gap-2 font-black text-xs uppercase tracking-widest" id="parcelLabel"><input type="checkbox" id="formParcel" class="custom-checkbox"> PARCELADO</label>
                 </div>
-                <button type="submit" class="w-full bg-slate-900 text-white font-black py-4 rounded-2xl shadow-xl">CONFIRMAR REGISTRO</button>
+                <button type="submit" class="w-full bg-slate-900 text-white font-black py-4 rounded-2xl shadow-xl hover:bg-slate-800 transition-all uppercase tracking-widest">Confirmar Registro</button>
             </form>
         </div>
     </div>
@@ -573,31 +592,39 @@
     <div id="baseBalanceModal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-md hidden z-[60] flex justify-center items-center opacity-0 transition-all p-4">
         <div class="bg-white rounded-3xl shadow-2xl w-full max-w-sm overflow-hidden transform scale-95 transition-all" id="baseBalanceModalContent">
             <div class="p-8 space-y-6 text-center">
-                <h3 class="font-black text-slate-800 uppercase">Ponto de Partida</h3>
-                <input type="month" id="sysStartMonthInput" class="w-full bg-slate-50 border-2 rounded-xl px-4 py-3 font-bold">
-                <input type="number" step="0.01" id="sysBaseBalanceInput" placeholder="Saldo Inicial R$" class="w-full bg-slate-50 border-2 rounded-xl px-4 py-3 font-bold">
-                <button onclick="saveBaseBalance()" class="w-full bg-blue-600 text-white font-black py-4 rounded-2xl shadow-lg">DEFINIR SALDO BASE</button>
+                <h3 class="font-black text-slate-800 uppercase tracking-tighter">Ponto de Partida</h3>
+                <p class="text-xs text-slate-400 font-medium">Defina o mês de início e o saldo total que você tinha em mãos.</p>
+                <input type="month" id="sysStartMonthInput" class="w-full bg-slate-50 border-2 rounded-xl px-4 py-3 font-bold outline-none focus:border-emerald-500">
+                <input type="number" step="0.01" id="sysBaseBalanceInput" placeholder="Saldo Total Inicial R$" class="w-full bg-slate-50 border-2 rounded-xl px-4 py-3 font-bold outline-none focus:border-emerald-500">
+                <button onclick="saveBaseBalance()" class="w-full bg-blue-600 text-white font-black py-4 rounded-2xl shadow-lg hover:bg-blue-700 transition-all uppercase tracking-widest">Definir Saldo Base</button>
             </div>
         </div>
     </div>
 
-    <!-- Modal Contas -->
+    <!-- Modal Gerir Contas -->
     <div id="accountModal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-md hidden z-[60] flex justify-center items-center opacity-0 transition-all p-4">
         <div class="bg-white rounded-3xl shadow-2xl w-full max-w-sm overflow-hidden transform scale-95 transition-all" id="accountModalContent">
+            <div class="p-6 border-b bg-slate-50 flex justify-between items-center">
+                <h3 class="font-black text-slate-800 uppercase tracking-tighter">Nova Conta</h3>
+                <button onclick="closeModal('accountModal')" class="text-slate-400"><i class="ph-bold ph-x text-xl"></i></button>
+            </div>
             <form id="accountForm" class="p-8 space-y-6">
-                <h3 class="font-black text-slate-800 uppercase text-center">Nova Conta Bancária</h3>
-                <input type="text" id="accName" required placeholder="Nome da Conta" class="w-full bg-slate-50 border-2 rounded-xl px-4 py-3 font-bold">
-                <select id="accType" class="w-full bg-slate-50 border-2 rounded-xl px-4 py-3 font-bold"></select>
-                <button type="submit" class="w-full bg-slate-900 text-white font-black py-4 rounded-2xl shadow-xl">CADASTRAR</button>
+                <input type="text" id="accName" required placeholder="Nome da Conta (ex: Itaú)" class="w-full bg-slate-50 border-2 rounded-xl px-4 py-3 font-bold outline-none focus:border-emerald-500">
+                <select id="accType" class="w-full bg-slate-50 border-2 rounded-xl px-4 py-3 font-bold outline-none focus:border-emerald-500"></select>
+                <button type="submit" class="w-full bg-slate-900 text-white font-black py-4 rounded-2xl shadow-xl uppercase tracking-widest hover:bg-slate-800 transition-all">Cadastrar Conta</button>
             </form>
         </div>
     </div>
 
+    <!-- ====================================================================== -->
+    <!-- FIREBASE & LÓGICA JAVASCRIPT -->
+    <!-- ====================================================================== -->
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
-        import { getAuth, onAuthStateChanged, signInAnonymously } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
-        import { getFirestore, collection, doc, setDoc, deleteDoc, updateDoc, onSnapshot, writeBatch, getDocs } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+        import { getAuth, onAuthStateChanged, signInWithEmailAndPassword, createUserWithEmailAndPassword, signOut } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
+        import { getFirestore, collection, doc, setDoc, deleteDoc, updateDoc, onSnapshot, writeBatch } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
 
+        // CONFIGURAÇÃO REAL DO FIREBASE DO USUÁRIO
         const firebaseConfig = {
             apiKey: "AIzaSyDHcMf8iobRwnlwRPBYIBx5xliegUojInM",
             authDomain: "finfamilia-e0ecc.firebaseapp.com",
@@ -612,6 +639,7 @@
         const db = getFirestore(app);
         const appId = 'finfamilia-prod-v2';
 
+        // ESTADOS
         let currentUser = null;
         let accounts = [];
         let transactions = [];
@@ -624,14 +652,10 @@
         let currentYearObj = new Date().getFullYear();
         let selectedMonthNum = String(new Date().getMonth() + 1).padStart(2, '0');
         let currentMonth = `${currentYearObj}-${selectedMonthNum}`;
-        let sortCol = 'date';
-        let sortAsc = false;
-        let selectedTxs = new Set();
-        let chartInstanceCashFlow = null;
-        let chartInstanceDonut = null;
         let pendingBulkItems = [];
+        let isLoginMode = true;
 
-        // --- FORMATADORES ---
+        // FORMATADORES BRASIL
         const fmt = val => new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(val);
         const formatMonthLong = yyyymm => {
             const mNames = ['Janeiro', 'Fevereiro', 'Março', 'Abril', 'Maio', 'Junho', 'Julho', 'Agosto', 'Setembro', 'Outubro', 'Novembro', 'Dezembro'];
@@ -639,21 +663,66 @@
             return `${mNames[parseInt(m) - 1]} de ${y}`;
         };
 
-        // --- AUTH ---
+        // --- AUTH SISTEMA ---
         onAuthStateChanged(auth, user => {
+            const loadingScreen = document.getElementById('loadingScreen');
+            const authScreen = document.getElementById('authScreen');
+            const appContainer = document.getElementById('appContainer');
+
             if (user) {
                 currentUser = user;
-                document.getElementById('loadingScreen').classList.add('hidden');
-                document.getElementById('appContainer').classList.remove('hidden');
-                document.getElementById('appContainer').classList.add('flex');
+                authScreen.classList.add('hidden');
+                appContainer.classList.remove('hidden');
+                appContainer.classList.add('flex');
+                loadingScreen.classList.add('hidden');
                 startDatabaseListeners();
-            } else { signInAnonymously(auth); }
+            } else {
+                currentUser = null;
+                appContainer.classList.add('hidden');
+                appContainer.classList.remove('flex');
+                authScreen.classList.remove('hidden');
+                loadingScreen.classList.add('hidden');
+            }
         });
 
+        window.toggleAuthMode = () => {
+            isLoginMode = !isLoginMode;
+            document.getElementById('authTitle').innerText = isLoginMode ? 'Entrar na Conta' : 'Criar Nova Conta';
+            document.getElementById('authSubmitBtn').innerText = isLoginMode ? 'Acessar' : 'Cadastrar';
+            document.getElementById('authToggleText').innerText = isLoginMode ? 'Não tem conta?' : 'Já tem conta?';
+            document.getElementById('authToggleBtn').innerText = isLoginMode ? 'Criar conta' : 'Fazer Login';
+        };
+
+        document.getElementById('authForm').addEventListener('submit', async e => {
+            e.preventDefault();
+            const email = document.getElementById('authEmail').value;
+            const pass = document.getElementById('authPassword').value;
+            const btn = document.getElementById('authSubmitBtn');
+            const err = document.getElementById('authError');
+            
+            btn.disabled = true;
+            btn.innerHTML = 'Conectando...';
+            err.classList.add('hidden');
+
+            try {
+                if (isLoginMode) await signInWithEmailAndPassword(auth, email, pass);
+                else await createUserWithEmailAndPassword(auth, email, pass);
+            } catch (error) {
+                err.innerText = "Erro: " + error.message;
+                err.classList.remove('hidden');
+            } finally {
+                btn.disabled = false;
+                btn.innerHTML = isLoginMode ? 'Acessar' : 'Cadastrar';
+            }
+        });
+
+        window.logout = () => signOut(auth);
+
+        // --- BANCO DE DADOS ---
         function startDatabaseListeners() {
             const uid = currentUser.uid;
             
-            // Ouvinte de Contas (Caminho obrigatório)
+            // Ouvinte de Contas
             onSnapshot(collection(db, 'artifacts', appId, 'users', uid, 'accounts'), snap => {
                 accounts = [];
                 snap.forEach(d => accounts.push({ id: d.id, ...d.data() }));
@@ -661,7 +730,7 @@
                 calculateMath();
             });
 
-            // Ouvinte de Transações (Caminho obrigatório)
+            // Ouvinte de Transações
             onSnapshot(collection(db, 'artifacts', appId, 'users', uid, 'transactions'), snap => {
                 transactions = [];
                 snap.forEach(d => transactions.push({ id: d.id, ...d.data() }));
@@ -678,8 +747,8 @@
             });
         }
 
-        // --- UI NAVEGAÇÃO ---
-        window.switchView = (v) => {
+        // --- NAVEGAÇÃO ---
+        window.switchView = v => {
             ['monthly', 'annual', 'installments'].forEach(view => {
                 const el = document.getElementById(view + 'View');
                 if (el) el.classList.toggle('hidden', v !== view);
@@ -690,7 +759,7 @@
             if (v === 'installments') renderInstallmentsView();
         };
 
-        window.changeMonth = (m) => {
+        window.changeMonth = m => {
             currentMonth = m;
             [currentYearObj, selectedMonthNum] = m.split('-');
             renderMonthSelector();
@@ -698,7 +767,7 @@
             calculateMath();
         };
 
-        window.changeYear = (delta) => {
+        window.changeYear = delta => {
             currentYearObj += delta;
             currentMonth = `${currentYearObj}-${selectedMonthNum}`;
             renderMonthSelector();
@@ -719,7 +788,7 @@
             if (yearDisp) yearDisp.innerText = currentYearObj;
         }
 
-        // --- RENDER TABELAS MENSAL ---
+        // --- RENDERIZADORES ---
         window.renderTables = () => {
             const list = transactions.filter(t => t.date.startsWith(currentMonth));
             const incs = list.filter(t => t.type === 'income');
@@ -729,10 +798,10 @@
             let hInc = '', totInc = 0;
             incs.forEach(t => {
                 totInc += t.amount;
-                hInc += `<tr><td class="text-center no-print"><input type="checkbox" onchange="toggleSelectTx('${t.id}', this.checked)" class="custom-checkbox"></td><td class="text-center"><button onclick="toggleStatus(event, '${t.id}')" class="text-2xl ${t.status === 'done' ? 'text-emerald-500' : 'text-slate-200'} transition-all"><i class="ph-fill ph-check-circle"></i></button></td><td class="font-bold text-slate-700">${t.desc}</td><td><span class="bg-emerald-100 text-emerald-700 px-2 py-0.5 rounded text-[10px] font-black uppercase">${t.category}</span></td><td class="text-right font-black text-emerald-600">${fmt(t.amount)}</td><td class="text-center no-print"><button onclick="deleteTx(event, '${t.id}')" class="text-slate-300 hover:text-rose-500"><i class="ph-fill ph-trash"></i></button></td></tr>`;
+                hInc += `<tr><td class="text-center no-print"><input type="checkbox" onchange="toggleSelectTx('${t.id}', this.checked)" class="custom-checkbox"></td><td class="text-center"><button onclick="toggleStatus(event, '${t.id}')" class="text-2xl ${t.status === 'done' ? 'text-emerald-500' : 'text-slate-200'} transition-all"><i class="ph-fill ph-check-circle"></i></button></td><td class="font-bold text-slate-700">${t.desc}</td><td><span class="bg-emerald-100 text-emerald-700 px-2 py-0.5 rounded text-[10px] font-black uppercase tracking-tighter">${t.category}</span></td><td class="text-right font-black text-emerald-600">${fmt(t.amount)}</td><td class="text-center no-print"><button onclick="deleteTx(event, '${t.id}')" class="text-slate-300 hover:text-rose-500"><i class="ph-fill ph-trash"></i></button></td></tr>`;
             });
             const incEl = document.getElementById('incomeList');
-            if (incEl) incEl.innerHTML = hInc || '<tr><td colspan="6" class="text-center py-6 text-slate-400">Nenhuma receita</td></tr>';
+            if (incEl) incEl.innerHTML = hInc || '<tr><td colspan="6" class="text-center py-6 text-slate-400">Nenhuma entrada</td></tr>';
             const totIncEl = document.getElementById('totalIncomes');
             if (totIncEl) totIncEl.innerText = fmt(totInc);
 
@@ -741,18 +810,16 @@
             exps.forEach(t => {
                 totExp += t.amount;
                 catMap[t.category] = (catMap[t.category] || 0) + t.amount;
-                hExp += `<tr class="${t.status === 'done' ? '' : 'bg-yellow-50/20'}"><td class="text-center no-print"><input type="checkbox" onchange="toggleSelectTx('${t.id}', this.checked)" class="custom-checkbox"></td><td class="text-center"><button onclick="toggleStatus(event, '${t.id}')" class="text-2xl ${t.status === 'done' ? 'text-emerald-500' : 'text-slate-200'} transition-all"><i class="ph-fill ph-check-circle"></i></button></td><td class="font-bold text-slate-700">${t.desc}</td><td><span class="bg-slate-100 text-slate-500 px-2 py-0.5 rounded text-[10px] font-black uppercase">${t.category}</span></td><td class="text-xs font-bold text-slate-400">${t.paymentMethod || '-'}</td><td class="text-center">${t.parcelado ? 'Sim' : '-'}</td><td class="text-right font-black text-slate-800">${fmt(t.amount)}</td><td class="text-center no-print"><button onclick="deleteTx(event, '${t.id}')" class="text-slate-300 hover:text-rose-500"><i class="ph-fill ph-trash"></i></button></td></tr>`;
+                hExp += `<tr class="${t.status === 'done' ? '' : 'bg-yellow-50/20'}"><td class="text-center no-print"><input type="checkbox" onchange="toggleSelectTx('${t.id}', this.checked)" class="custom-checkbox"></td><td class="text-center"><button onclick="toggleStatus(event, '${t.id}')" class="text-2xl ${t.status === 'done' ? 'text-emerald-500' : 'text-slate-200'} transition-all"><i class="ph-fill ph-check-circle"></i></button></td><td class="font-bold text-slate-700">${t.desc}</td><td><span class="bg-slate-100 text-slate-500 px-2 py-0.5 rounded text-[10px] font-black uppercase tracking-tighter">${t.category}</span></td><td class="text-xs font-bold text-slate-400 uppercase tracking-tighter">${t.paymentMethod || '-'}</td><td class="text-center">${t.parcelado ? 'Sim' : '-'}</td><td class="text-right font-black text-slate-800">${fmt(t.amount)}</td><td class="text-center no-print"><button onclick="deleteTx(event, '${t.id}')" class="text-slate-300 hover:text-rose-500"><i class="ph-fill ph-trash"></i></button></td></tr>`;
             });
             const expEl = document.getElementById('expenseList');
-            if (expEl) expEl.innerHTML = hExp || '<tr><td colspan="8" class="text-center py-10 text-slate-400">Sem registros</td></tr>';
-            
+            if (expEl) expEl.innerHTML = hExp || '<tr><td colspan="8" class="text-center py-10 text-slate-400">Sem gastos registrados</td></tr>';
             const totExpAmEl = document.getElementById('totalExpensesAmount');
             if (totExpAmEl) totExpAmEl.innerText = fmt(totExp);
-            
             const expCountEl = document.getElementById('expenseCountLabel');
-            if (expCountEl) expCountEl.innerText = `${exps.length} registros no Brasil`;
+            if (expCountEl) expCountEl.innerText = `${exps.length} registros encontrados`;
 
-            // Categorias (Resumo Lateral)
+            // Categorias lateral
             const sortedCats = Object.entries(catMap).sort((a,b) => b[1]-a[1]);
             const catListEl = document.getElementById('categoryTotalsList');
             if (catListEl) {
@@ -765,7 +832,6 @@
             }
         };
 
-        // --- MATEMÁTICA E CONCILIAÇÃO ---
         function calculateMath() {
             const startM = initialBalances.startMonth || '2026-01';
             const sysB = initialBalances.base || 0;
@@ -788,7 +854,7 @@
             
             const expected = prevAcc + curInc - curExp;
             
-            // Atualizar UI Lógica com verificação de segurança
+            // UI
             const lblPrev = document.getElementById('mathLblPrevMonth');
             if (lblPrev) lblPrev.innerText = formatMonthLong(currentMonth);
             const mathPrev = document.getElementById('mathPrevBal');
@@ -814,12 +880,12 @@
                     badge.className = "px-4 py-2 rounded-xl text-xs font-black uppercase bg-emerald-100 text-emerald-700 shadow-sm border border-emerald-200";
                     badge.innerHTML = "Conciliado OK";
                     card.className = "mt-4 p-3 rounded-xl border border-emerald-500 bg-emerald-500/10 text-emerald-400 text-[10px] font-black uppercase tracking-widest text-center";
-                    card.innerHTML = "Saldo Bancário coincide com o Lógico";
+                    card.innerHTML = "Saldo Real coincide com o Fluxo";
                 } else {
                     badge.className = "px-4 py-2 rounded-xl text-xs font-black uppercase bg-rose-100 text-rose-700 shadow-sm border border-rose-200";
                     badge.innerHTML = `Divergência: ${fmt(Math.abs(diff))}`;
                     card.className = "mt-4 p-3 rounded-xl border border-rose-500 bg-rose-500/10 text-rose-400 text-[10px] font-black uppercase tracking-widest text-center";
-                    card.innerHTML = "Atenção: Diferença no Saldo Bancário";
+                    card.innerHTML = "Diferença detectada no Banco";
                 }
             }
         }
@@ -847,7 +913,7 @@
             const annTotExp = document.getElementById('annualTotalExp');
             if (annTotExp) annTotExp.innerText = fmt(mExpData.reduce((a,b)=>a+b,0));
 
-            // Gráfico Barras (Cashflow)
+            // Gráfico Barras
             const barCtx = document.getElementById('cashFlowChart');
             if (barCtx) {
                 if(chartInstanceCashFlow) chartInstanceCashFlow.destroy();
@@ -864,8 +930,8 @@
                 });
             }
 
-            // Tabela Matriz Detalhada
-            let hTable = `<thead><tr><th class="text-left bg-slate-100">CATEGORIA</th>${monthsShort.map(n => `<th class="text-center bg-slate-50">${n}</th>`).join('')}<th class="bg-slate-900 text-white">TOTAL</th></tr></thead><tbody>`;
+            // Tabela Matriz
+            let hTable = `<thead><tr><th class="text-left bg-slate-100 uppercase text-[10px]">Categoria</th>${monthsShort.map(n => `<th class="text-center bg-slate-50 uppercase text-[10px]">${n}</th>`).join('')}<th class="bg-slate-900 text-white uppercase text-[10px]">Total</th></tr></thead><tbody>`;
             userCategories.forEach(cat => {
                 const vals = catMatrix[cat];
                 const sum = vals.reduce((a,b)=>a+b,0);
@@ -877,7 +943,6 @@
             if (annMat) annMat.innerHTML = hTable;
         }
 
-        // --- VISÃO PARCELAS ---
         function renderInstallmentsView() {
             const list = transactions.filter(t => t.parcelado);
             let total = 0;
@@ -885,16 +950,15 @@
             if (instList) {
                 instList.innerHTML = list.map(t => {
                     total += t.amount;
-                    return `<tr><td class="font-bold text-slate-700">${t.desc}</td><td>${t.category}</td><td class="text-right text-blue-600 font-black">ATIVA</td><td class="text-center font-bold text-slate-400">${t.date}</td><td class="text-right font-black">${fmt(t.amount)}</td></tr>`;
+                    return `<tr><td class="font-bold text-slate-700">${t.desc}</td><td>${t.category}</td><td class="text-right text-indigo-600 font-black tracking-widest uppercase text-xs">Em Aberto</td><td class="text-center font-bold text-slate-400">${t.date}</td><td class="text-right font-black">${fmt(t.amount)}</td></tr>`;
                 }).join('') || '<tr><td colspan="5" class="text-center py-20 text-slate-400">Nenhum parcelamento ativo</td></tr>';
             }
             const instTot = document.getElementById('installmentsTotalDebt');
             if (instTot) instTot.innerText = fmt(total);
         }
 
-        // --- OPERAÇÕES CRUD ---
+        // --- OPERAÇÕES ---
         window.openTransactionModal = () => {
-            editingTxId = null;
             const form = document.getElementById('transactionForm');
             if (form) form.reset();
             const dateEl = document.getElementById('formDate');
@@ -929,27 +993,23 @@
 
         window.deleteTx = async (e, id) => {
             e.stopPropagation();
-            if(confirm("Excluir registro permanentemente?")) {
+            if(confirm("Excluir este lançamento para sempre?")) {
                 await deleteDoc(doc(db, 'artifacts', appId, 'users', currentUser.uid, 'transactions', id));
             }
         };
 
-        // --- GESTÃO DE CONTAS ---
         window.renderAccounts = () => {
             const grid = document.getElementById('accountsGrid');
             if (grid) {
                 grid.innerHTML = accounts.map(acc => {
                     const bal = (acc.balances && acc.balances[currentMonth]) || 0;
                     return `
-                        <div class="bg-slate-50 border-2 border-slate-100 rounded-xl p-3 relative group hover:border-indigo-200 transition-all">
+                        <div class="bg-slate-50 border-2 border-slate-100 rounded-xl p-3 relative group hover:border-emerald-200 transition-all">
                             <button onclick="deleteAccount('${acc.id}')" class="absolute -top-2 -right-2 text-rose-500 opacity-0 group-hover:opacity-100 transition-all"><i class="ph-fill ph-x-circle text-xl"></i></button>
-                            <span class="block text-[10px] font-black text-slate-400 uppercase tracking-tighter">${acc.name}</span>
-                            <div class="flex items-center gap-1">
-                                <span class="text-xs font-bold text-slate-300">R$</span>
-                                <input type="number" step="0.01" value="${bal.toFixed(2)}" onchange="updateAccBalance('${acc.id}', this.value)" class="w-full bg-transparent font-black text-slate-800 outline-none">
-                            </div>
+                            <span class="block text-[10px] font-black text-slate-400 uppercase tracking-widest">${acc.name}</span>
+                            <input type="number" step="0.01" value="${bal.toFixed(2)}" onchange="updateAccBalance('${acc.id}', this.value)" class="w-full bg-transparent font-black text-slate-800 outline-none">
                         </div>`;
-                }).join('') || '<p class="text-xs text-slate-400">Nenhuma conta</p>';
+                }).join('') || '<p class="text-xs text-slate-400">Clique em Nova Conta</p>';
             }
             const accType = document.getElementById('accType');
             if (accType) accType.innerHTML = accountTypes.map(t => `<option value="${t}">${t}</option>`).join('');
@@ -962,12 +1022,9 @@
         };
 
         window.deleteAccount = async id => { 
-            if(confirm("Deseja remover esta conta?")) {
-                await deleteDoc(doc(db, 'artifacts', appId, 'users', currentUser.uid, 'accounts', id)); 
-            }
+            if(confirm("Deseja excluir esta conta?")) await deleteDoc(doc(db, 'artifacts', appId, 'users', currentUser.uid, 'accounts', id)); 
         };
 
-        // --- IMPORTAÇÃO EM LOTE ---
         window.processPaste = () => {
             const pasteArea = document.getElementById('bulkPasteArea');
             if (!pasteArea) return;
@@ -988,7 +1045,7 @@
                 revCont.classList.remove('hidden');
                 const revList = document.getElementById('bulkReviewList');
                 if (revList) {
-                    revList.innerHTML = pendingBulkItems.map((it, idx) => `<tr><td class="font-bold">${it.desc}</td><td class="text-rose-600">${fmt(it.val)}</td><td>${it.cat}</td><td><button onclick="removeBulkItem(${idx})" class="text-rose-500"><i class="ph-bold ph-trash"></i></button></td></tr>`).join('');
+                    revList.innerHTML = pendingBulkItems.map((it, idx) => `<tr><td class="font-bold">${it.desc}</td><td class="text-rose-600 font-black">${fmt(it.val)}</td><td>${it.cat}</td><td><button onclick="removeBulkItem(${idx})" class="text-rose-500"><i class="ph-bold ph-trash"></i></button></td></tr>`).join('');
                 }
             }
         };
@@ -996,7 +1053,7 @@
         window.removeBulkItem = idx => { 
             pendingBulkItems.splice(idx,1); 
             const revList = document.getElementById('bulkReviewList');
-            if (revList) revList.innerHTML = pendingBulkItems.map((it, idx) => `<tr><td class="font-bold">${it.desc}</td><td class="text-rose-600">${fmt(it.val)}</td><td>${it.cat}</td><td><button onclick="removeBulkItem(${idx})" class="text-rose-500"><i class="ph-bold ph-trash"></i></button></td></tr>`).join('');
+            if (revList) revList.innerHTML = pendingBulkItems.map((it, idx) => `<tr><td class="font-bold">${it.desc}</td><td class="text-rose-600 font-black">${fmt(it.val)}</td><td>${it.cat}</td><td><button onclick="removeBulkItem(${idx})" class="text-rose-500"><i class="ph-bold ph-trash"></i></button></td></tr>`).join('');
         };
 
         window.saveBulkTransactions = async () => {
@@ -1011,7 +1068,7 @@
             closeModal('importModal');
         };
 
-        // --- UTILITÁRIOS MODAIS ---
+        // --- UTILITÁRIOS ---
         window.openModal = id => {
             const m = document.getElementById(id), c = document.getElementById(id + 'Content');
             if (!m || !c) return;
@@ -1032,15 +1089,12 @@
         };
 
         window.saveBaseBalance = async () => {
-            const baseValEl = document.getElementById('sysBaseBalanceInput');
-            const baseVal = parseFloat(baseValEl.value) || 0;
-            const startMonthEl = document.getElementById('sysStartMonthInput');
-            const startMonth = startMonthEl.value;
+            const baseVal = parseFloat(document.getElementById('sysBaseBalanceInput').value) || 0;
+            const startMonth = document.getElementById('sysStartMonthInput').value;
             await setDoc(doc(db, 'artifacts', appId, 'users', currentUser.uid, 'settings', 'balances'), { base: baseVal, startMonth });
             closeModal('baseBalanceModal');
         };
 
-        // --- SUBMIT FORMS ---
         document.getElementById('transactionForm').addEventListener('submit', async e => {
             e.preventDefault();
             const type = document.querySelector('input[name="formType"]:checked').value;
