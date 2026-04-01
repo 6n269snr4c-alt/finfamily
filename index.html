@@ -749,6 +749,7 @@
         let accountTypes = ["Conta Corrente", "Poupança", "Carteira", "Investimentos"];
 
         let editingTxId = null;
+        let sourceRepeatTxId = null; // <- NOVA VARIÁVEL: Guarda a referência de quem originou a repetição
         let chartInstanceCashFlow = null; let chartInstanceDonut = null;
 
         // Login
@@ -1030,15 +1031,18 @@
         // Lançamentos
         window.openTransactionModal = () => {
             editingTxId = null;
+            sourceRepeatTxId = null; // Zera a referência
             document.getElementById('transactionForm').reset();
             document.getElementById('transactionModalTitle').innerText = 'Novo Lançamento';
             document.getElementById('transactionSubmitBtn').innerText = 'Salvar Lançamento';
             updateFormUI(); openModal('transactionModal');
         };
+        
         window.editTransaction = (id, event) => {
             if(event && (event.target.tagName === 'INPUT' || event.target.tagName === 'BUTTON' || event.target.closest('button'))) return;
             const t = transactions.find(x => x.id === id); if(!t) return;
             editingTxId = id;
+            sourceRepeatTxId = null; // Não estamos repetindo, apenas editando
             document.getElementById('transactionModalTitle').innerText = 'Editar Lançamento';
             document.getElementById('transactionSubmitBtn').innerText = 'Salvar Alterações';
             document.querySelector(`input[name="formType"][value="${t.type}"]`).checked = true;
@@ -1057,6 +1061,51 @@
             document.getElementById('formParcel').checked = !!t.parcelado; 
             openModal('transactionModal');
         };
+
+        // NOVA FUNÇÃO: Prepara a repetição e abre o modal para revisão
+        window.openRepeatModal = (id, event) => {
+            if(event) event.stopPropagation();
+            const t = transactions.find(x => x.id === id); if(!t || t.repeatedToNextMonth) return;
+            
+            // Calcula a data no mês seguinte
+            let [y, m, d] = t.date.split('-');
+            let dateObj = new Date(parseInt(y), parseInt(m)-1, parseInt(d));
+            let currentMonthVal = dateObj.getMonth();
+            dateObj.setMonth(dateObj.getMonth() + 1);
+            
+            // Ajuste para virada de mês (ex: 31 Jan -> 3 Mar -> Volta para último dia de Fev)
+            if (dateObj.getMonth() !== ((currentMonthVal + 1) % 12)) {
+                dateObj.setDate(0); 
+            }
+            let nextMonthStr = `${dateObj.getFullYear()}-${String(dateObj.getMonth() + 1).padStart(2, '0')}-${String(dateObj.getDate()).padStart(2, '0')}`;
+
+            editingTxId = null;
+            sourceRepeatTxId = id; // Marca que isto é uma cópia baseada numa transação anterior
+            
+            document.getElementById('transactionModalTitle').innerText = 'Repetir para Próximo Mês';
+            document.getElementById('transactionSubmitBtn').innerText = 'Confirmar Inclusão';
+            
+            document.querySelector(`input[name="formType"][value="${t.type}"]`).checked = true;
+            updateFormUI();
+            
+            document.getElementById('formDesc').value = t.desc;
+            document.getElementById('formAmount').value = t.type === 'expense' ? Math.abs(t.amount) : t.amount;
+            document.getElementById('formDate').value = nextMonthStr;
+            
+            const catSelect = document.getElementById('formCategory');
+            if(!Array.from(catSelect.options).some(opt => opt.value === t.category)) catSelect.add(new Option(t.category, t.category));
+            catSelect.value = t.category;
+            
+            const paySelect = document.getElementById('formPaymentMethod');
+            if(t.paymentMethod && !Array.from(paySelect.options).some(opt => opt.value === t.paymentMethod)) paySelect.add(new Option(t.paymentMethod, t.paymentMethod));
+            paySelect.value = t.paymentMethod || '';
+            
+            document.getElementById('formStatus').checked = false; // Normalmente, no futuro, entra pendente
+            document.getElementById('formParcel').checked = !!t.parcelado;
+            
+            openModal('transactionModal');
+        };
+
         document.getElementById('transactionForm').addEventListener('submit', async (e) => {
             e.preventDefault();
             const type = document.querySelector('input[name="formType"]:checked').value;
@@ -1068,30 +1117,35 @@
                 status: document.getElementById('formStatus').checked ? 'done' : 'pending',
                 parcelado: document.getElementById('formParcel').checked, repeatedToNextMonth: false
             };
+            
             closeModal('transactionModal');
-            if (editingTxId) await updateDoc(doc(db, 'users', currentUser.uid, 'transactions', editingTxId), data);
-            else await setDoc(doc(db, 'users', currentUser.uid, 'transactions', Date.now().toString()), data);
+            
+            if (editingTxId) {
+                // Modo Edição Normal
+                await updateDoc(doc(db, 'users', currentUser.uid, 'transactions', editingTxId), data);
+            } else {
+                // Criar Novo
+                await setDoc(doc(db, 'users', currentUser.uid, 'transactions', Date.now().toString()), data);
+                
+                // Se foi originado de uma repetição, marca o original como "já repetido"
+                if (sourceRepeatTxId) {
+                    await updateDoc(doc(db, 'users', currentUser.uid, 'transactions', sourceRepeatTxId), { repeatedToNextMonth: true });
+                    sourceRepeatTxId = null;
+                }
+            }
         });
+
         window.toggleStatus = async (event, id) => {
             if(event) event.stopPropagation();
             const t = transactions.find(x => x.id === id);
             if(t) await updateDoc(doc(db, 'users', currentUser.uid, 'transactions', id), { status: checkIsPaid(t) ? 'pending' : 'done' });
         };
+        
         window.deleteTransaction = async (id) => {
             if(confirm('Deseja excluir este lançamento?')) {
                 await deleteDoc(doc(db, 'users', currentUser.uid, 'transactions', id));
                 selectedTxs.delete(id); updateBulkActionBar();
             }
-        };
-        window.repeatTransactionToNextMonth = async (event, id) => {
-            if(event) event.stopPropagation();
-            const t = transactions.find(x => x.id === id); if(!t || t.repeatedToNextMonth) return; 
-            let [y, m, d] = t.date.split('-'); let dateObj = new Date(parseInt(y), parseInt(m)-1, 1); dateObj.setMonth(dateObj.getMonth() + 1);
-            let nextMonthStr = `${dateObj.getFullYear()}-${String(dateObj.getMonth() + 1).padStart(2, '0')}-01`;
-            await updateDoc(doc(db, 'users', currentUser.uid, 'transactions', id), { repeatedToNextMonth: true });
-            const copyData = { ...t, date: nextMonthStr, status: 'pending', repeatedToNextMonth: false };
-            delete copyData.id; 
-            await setDoc(doc(db, 'users', currentUser.uid, 'transactions', Date.now().toString()), copyData);
         };
 
         // Parcelamentos (Projeção)
@@ -1287,7 +1341,6 @@
                 bankTotal += accBal;
             });
             
-            // NOVO: Exibe o Saldo Financeiro Dinâmico logo abaixo
             document.getElementById('mathFinancialBalance').innerText = fmtMoney(bankTotal);
 
             const diff = bankTotal - expectedBalance;
@@ -1375,7 +1428,7 @@
             const parcelLabel = document.getElementById('parcelLabel'); if(parcelLabel) parcelLabel.style.display = (t === 'expense') ? 'flex' : 'none';
         };
         window.openModal = (id) => {
-            if(id === 'transactionModal' && !editingTxId) document.getElementById('formDate').value = `${currentMonth}-01`;
+            if(id === 'transactionModal' && !editingTxId && !sourceRepeatTxId) document.getElementById('formDate').value = `${currentMonth}-01`;
             const m = document.getElementById(id), c = document.getElementById(id+'Content');
             m.classList.remove('hidden'); setTimeout(() => { m.classList.remove('opacity-0'); c.classList.remove('scale-95'); }, 10);
         };
@@ -1384,7 +1437,11 @@
             m.classList.add('opacity-0'); c.classList.add('scale-95');
             setTimeout(() => { 
                 m.classList.add('hidden'); 
-                if(id === 'transactionModal') { document.getElementById('transactionForm').reset(); editingTxId = null; }
+                if(id === 'transactionModal') { 
+                    document.getElementById('transactionForm').reset(); 
+                    editingTxId = null; 
+                    sourceRepeatTxId = null;
+                }
                 if(id === 'accountModal') document.getElementById('accountForm').reset(); 
                 if(id === 'importModal') resetBulkModal();
                 if(id !== 'accountModal' && id !== 'categoryManageModal' && id !== 'installmentPromptModal' && id !== 'customAvgModal' && id !== 'baseBalanceModal') updateFormUI(); 
@@ -1413,7 +1470,7 @@
                     <td class="text-right font-semibold text-emerald-600 cursor-pointer" onclick="editTransaction('${t.id}', event)">${fmtMoney(t.amount)}</td>
                     <td class="text-center no-print">
                         <div class="flex items-center justify-center gap-2">
-                            <button onclick="editTransaction('${t.id}', event)" class="w-8 h-8 flex items-center justify-center rounded-lg bg-blue-50 text-blue-600 hover:bg-blue-600 hover:text-white transition-colors" title="Editar"><i class="ph-bold ph-pencil-simple text-sm"></i></button>
+                            <button onclick="openRepeatModal('${t.id}', event)" class="w-8 h-8 flex items-center justify-center rounded-lg ${t.repeatedToNextMonth ? 'bg-slate-100 text-slate-300 cursor-not-allowed' : 'bg-emerald-50 text-emerald-600 hover:bg-emerald-600 hover:text-white'} transition-colors" title="${t.repeatedToNextMonth ? 'Já repetido' : 'Repetir no próximo mês'}" ${t.repeatedToNextMonth ? 'disabled' : ''}><i class="ph-bold ph-calendar-plus text-sm"></i></button>
                             <button onclick="deleteTransaction('${t.id}')" class="w-8 h-8 flex items-center justify-center rounded-lg bg-rose-50 text-rose-600 hover:bg-rose-600 hover:text-white transition-colors" title="Excluir"><i class="ph-bold ph-trash text-sm"></i></button>
                         </div>
                     </td>
@@ -1454,7 +1511,7 @@
                     <td class="text-right font-bold cursor-pointer ${isR?'text-emerald-600':'text-slate-800'}" onclick="editTransaction('${t.id}', event)">${isR?'+':''}${fmtMoney(Math.abs(t.amount))}</td>
                     <td class="text-center no-print">
                         <div class="flex items-center justify-center gap-2">
-                            <button onclick="editTransaction('${t.id}', event)" class="w-8 h-8 flex items-center justify-center rounded-lg bg-blue-50 text-blue-600 hover:bg-blue-600 hover:text-white transition-colors" title="Editar"><i class="ph-bold ph-pencil-simple text-sm"></i></button>
+                            <button onclick="openRepeatModal('${t.id}', event)" class="w-8 h-8 flex items-center justify-center rounded-lg ${t.repeatedToNextMonth ? 'bg-slate-100 text-slate-300 cursor-not-allowed' : 'bg-blue-50 text-blue-600 hover:bg-blue-600 hover:text-white'} transition-colors" title="${t.repeatedToNextMonth ? 'Já repetido' : 'Repetir no próximo mês'}" ${t.repeatedToNextMonth ? 'disabled' : ''}><i class="ph-bold ph-calendar-plus text-sm"></i></button>
                             <button onclick="openInstallmentPrompt(event, '${t.id}')" class="w-8 h-8 flex items-center justify-center rounded-lg bg-purple-50 text-purple-600 hover:bg-purple-600 hover:text-white transition-colors" title="Parcelar"><i class="ph-bold ph-cards text-sm"></i></button>
                             <button onclick="deleteTransaction('${t.id}')" class="w-8 h-8 flex items-center justify-center rounded-lg bg-rose-50 text-rose-600 hover:bg-rose-600 hover:text-white transition-colors" title="Excluir"><i class="ph-bold ph-trash text-sm"></i></button>
                         </div>
