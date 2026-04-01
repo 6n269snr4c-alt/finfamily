@@ -749,7 +749,7 @@
         let accountTypes = ["Conta Corrente", "Poupança", "Carteira", "Investimentos"];
 
         let editingTxId = null;
-        let sourceRepeatTxId = null; // <- NOVA VARIÁVEL: Guarda a referência de quem originou a repetição
+        let sourceRepeatTxId = null; // <- Guarda a referência de quem originou a repetição
         let chartInstanceCashFlow = null; let chartInstanceDonut = null;
 
         // Login
@@ -1542,6 +1542,7 @@
             renderAnnualDashboard();
         };
 
+        // FUNÇÃO AJUSTADA AQUI!
         function renderAnnualDashboard() {
             const months = ['01', '02', '03', '04', '05', '06', '07', '08', '09', '10', '11', '12'];
             const monthNames = ['Jan', 'Fev', 'Mar', 'Abr', 'Mai', 'Jun', 'Jul', 'Ago', 'Set', 'Out', 'Nov', 'Dez'];
@@ -1559,7 +1560,8 @@
             let monthlyIncData = new Array(12).fill(0); let monthlyExpData = new Array(12).fill(0);
             let activeMonths = new Set();
 
-            transactions.filter(t => t.date.startsWith(currentYearObj.toString()) && checkIsPaid(t)).forEach(t => {
+            // AJUSTE: O filtro "&& checkIsPaid(t)" foi removido para incluir pendentes no Forecast Anual
+            transactions.filter(t => t.date.startsWith(currentYearObj.toString())).forEach(t => {
                 const monthIdx = parseInt(t.date.split('-')[1]) - 1; const month = t.date.split('-')[1];
                 activeMonths.add(month); 
 
