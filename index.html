@@ -208,8 +208,8 @@
             </div>
 
             <!-- Despesas -->
-            <div class="bg-white rounded-xl shadow-sm border border-slate-200 flex flex-col flex-1 min-h-[400px]">
-                <div class="p-4 border-b border-slate-100 flex flex-col sm:flex-row justify-between items-start sm:items-center bg-rose-50/30 sticky top-0 z-10 gap-4">
+            <div class="bg-white rounded-xl shadow-sm border border-slate-200 w-full mb-8">
+                <div class="p-4 border-b border-slate-100 flex flex-col sm:flex-row justify-between items-start sm:items-center bg-rose-50/30 sticky top-0 z-10 gap-4 rounded-t-xl">
                     <h2 class="text-base font-bold flex items-center gap-2 text-rose-700 whitespace-nowrap">
                         <i class="ph-fill ph-receipt text-xl"></i> Despesas
                         <p class="font-bold text-rose-700 text-lg ml-2 hidden lg:inline" id="totalExpensesTable">R$ 0,00</p>
@@ -259,7 +259,7 @@
                     </div>
                 </div>
                 
-                <div class="overflow-x-auto flex-1">
+                <div class="overflow-x-auto rounded-b-xl">
                     <table class="w-full text-left expense-table">
                         <thead class="bg-slate-50">
                             <tr>
@@ -1611,6 +1611,10 @@
                 tbody += `<td class="font-bold text-emerald-700 bg-emerald-50/50">${fmtMoney(matrixIncome[cat].total)}</td></tr>`;
             });
 
+            tbody += `<tr class="bg-emerald-100/50 font-bold border-t-2 border-emerald-200"><td class="text-slate-800 text-right pr-4 uppercase text-xs tracking-wider">Total Receitas</td>`;
+            months.forEach(m => tbody += `<td class="text-emerald-700">${fmtMoney(monthlyIncData[parseInt(m)-1])}</td>`);
+            tbody += `<td class="text-emerald-800 text-sm bg-emerald-100">${fmtMoney(totalIncYear)}</td></tr>`;
+
             tbody += `<tr><td colspan="14" class="bg-rose-50 text-rose-800 font-bold text-xs uppercase pt-4 pb-2">Saídas / Despesas</td></tr>`;
             let donutLabels = []; let donutData = [];
             Object.keys(matrixExpense).sort().forEach(cat => {
@@ -1624,6 +1628,20 @@
                 });
                 tbody += `<td class="font-bold text-rose-700 bg-rose-50/50">${fmtMoney(matrixExpense[cat].total)}</td></tr>`;
             });
+
+            tbody += `<tr class="bg-rose-100/50 font-bold border-t-2 border-rose-200"><td class="text-slate-800 text-right pr-4 uppercase text-xs tracking-wider">Total Despesas</td>`;
+            months.forEach(m => tbody += `<td class="text-rose-700">${fmtMoney(monthlyExpData[parseInt(m)-1])}</td>`);
+            tbody += `<td class="text-rose-800 text-sm bg-rose-100">${fmtMoney(totalExpYear)}</td></tr>`;
+
+            tbody += `<tr><td colspan="14" class="bg-blue-50 text-blue-800 font-bold text-xs uppercase pt-4 pb-2">Resultado Final</td></tr>`;
+            tbody += `<tr class="bg-blue-100/50 font-bold border-t-2 border-blue-200"><td class="text-slate-800 text-right pr-4 uppercase text-xs tracking-wider">Saldo do Mês</td>`;
+            months.forEach(m => {
+                let s = monthlyIncData[parseInt(m)-1] - monthlyExpData[parseInt(m)-1];
+                tbody += `<td class="${s >= 0 ? 'text-blue-700' : 'text-rose-600'}">${fmtMoney(s)}</td>`;
+            });
+            let sTotal = totalIncYear - totalExpYear;
+            tbody += `<td class="${sTotal >= 0 ? 'text-blue-800' : 'text-rose-700'} text-sm bg-blue-100">${fmtMoney(sTotal)}</td></tr>`;
+
             tbody += `</tbody>`;
             document.getElementById('annualMatrixTable').innerHTML = thead + tbody;
 
