@@ -698,7 +698,12 @@
                 </div>
                 <div class="flex items-center justify-between p-4 bg-slate-50 rounded-2xl border border-slate-100">
                     <label class="flex items-center gap-3 font-black text-xs uppercase tracking-widest cursor-pointer"><input type="checkbox" id="formStatus" class="custom-checkbox"> <span id="lblFormStatus">PAGO</span></label>
-                    <label class="flex items-center gap-3 font-black text-xs uppercase tracking-widest cursor-pointer" id="parcelLabel"><input type="checkbox" id="formParcel" class="custom-checkbox"> PARCELADO</label>
+                    <div class="flex items-center gap-3" id="parcelLabel">
+                        <label class="flex items-center gap-2 font-black text-xs uppercase tracking-widest cursor-pointer">
+                            <input type="checkbox" id="formParcel" class="custom-checkbox" onchange="document.getElementById('formParcelCount').classList.toggle('hidden', !this.checked)"> PARCELADO
+                        </label>
+                        <input type="number" id="formParcelCount" min="2" max="120" placeholder="Qtd" class="hidden w-20 bg-white border-2 border-slate-200 rounded-xl px-2 py-2 text-sm font-black outline-none focus:border-emerald-500 transition-all text-center">
+                    </div>
                 </div>
                 <button type="submit" id="transactionSubmitBtn" class="w-full bg-slate-900 text-white font-black py-4 rounded-2xl shadow-xl hover:bg-slate-800 transition-all uppercase tracking-widest">Confirmar Registro</button>
             </form>
@@ -837,6 +842,7 @@
         let accounts = [];
         let transactions = [];
         let projects = [];
+        let installmentPlans = [];
         let initialBalances = {};
         
         // Categorias Originais da Família
@@ -949,6 +955,15 @@
                 }
             });
 
+            // Ouvinte de Parcelamentos (Restaurado)
+            onSnapshot(collection(db, 'users', uid, 'installments'), snap => {
+                installmentPlans = [];
+                snap.forEach(d => installmentPlans.push({ id: d.id, ...d.data() }));
+                if(!document.getElementById('installmentsView').classList.contains('hidden') && typeof renderInstallmentsView === 'function') {
+                    renderInstallmentsView();
+                }
+            });
+
             // Saldos Iniciais
             onSnapshot(doc(db, 'users', uid, 'settings', 'balances'), snap => {
                 if (snap.exists()) initialBalances = snap.data();
@@ -974,6 +989,7 @@
                 }
             });
             if (v === 'annual') renderAnnualDashboard();
+            if (v === 'installments' && typeof renderInstallmentsView === 'function') renderInstallmentsView();
             if (v === 'projects') {
                 if(currentProjectId) renderProjectDetailsView();
                 else renderProjectsMasterList();
@@ -1592,6 +1608,100 @@
             });
         }
 
+        // =====================================================================
+        // GESTÃO DE PARCELAMENTOS (RESTAURADO)
+        // =====================================================================
+        window.renderInstallmentsView = () => {
+            const container = document.getElementById('installmentsView');
+            if(!container || container.classList.contains('hidden')) return;
+            
+            let futureDebt = 0;
+            let categorySums = {};
+            let monthlyProjections = {}; 
+
+            const todayM = currentMonth; 
+            
+            // 1. Calcular dívidas futuras baseado nas transações com planId pendentes
+            transactions.forEach(t => {
+                if(t.planId && t.type === 'expense') {
+                    const tMonth = t.date.substring(0, 7);
+                    if(tMonth >= todayM && checkIsPaid(t) === false) {
+                        futureDebt += t.amount;
+                        categorySums[t.category] = (categorySums[t.category] || 0) + t.amount;
+                        monthlyProjections[tMonth] = (monthlyProjections[tMonth] || 0) + t.amount;
+                    }
+                }
+            });
+
+            document.getElementById('installmentsTotalDebt').innerText = fmtMoney(futureDebt);
+
+            // 2. Resumo por Categoria
+            let catHtml = '';
+            Object.entries(categorySums).sort((a,b)=>b[1]-a[1]).forEach(([cat, val]) => {
+                catHtml += `<div class="bg-white p-4 rounded-2xl border border-slate-200 shadow-sm transition-all hover:-translate-y-1">
+                    <p class="text-[10px] font-black uppercase tracking-widest text-slate-400 mb-1">${cat}</p>
+                    <p class="text-xl font-black text-slate-800">${fmtMoney(val)}</p>
+                </div>`;
+            });
+            document.getElementById('installmentsCategorySummary').innerHTML = catHtml || '<p class="text-sm font-medium text-slate-400 col-span-full">Nenhuma dívida futura categorizada.</p>';
+
+            // 3. Grade de Projeção Mensal (Timeline)
+            let projHtml = '';
+            Object.entries(monthlyProjections).sort((a,b)=>a[0].localeCompare(b[0])).forEach(([m, val]) => {
+                projHtml += `<div class="bg-white p-4 rounded-2xl border border-slate-200 shadow-sm min-w-[130px] flex-shrink-0 text-center">
+                    <p class="text-[10px] font-black uppercase tracking-widest text-slate-500 mb-1">${formatMonthLong(m).split(' ')[0]} ${m.split('-')[0]}</p>
+                    <p class="text-lg font-black text-rose-600">${fmtMoney(val)}</p>
+                </div>`;
+            });
+            document.getElementById('installmentsProjectionGrid').innerHTML = projHtml || '<p class="text-sm font-medium text-slate-400">Sem projeções de parcelas.</p>';
+
+            // 4. Lista de Planos de Parcelamento
+            let listHtml = '';
+            if (typeof installmentPlans === 'undefined' || installmentPlans.length === 0) {
+                listHtml = '<tr><td colspan="5" class="text-center py-8 text-slate-400 font-medium text-sm">Nenhum parcelamento ativo encontrado.</td></tr>';
+            } else {
+                installmentPlans.sort((a,b) => new Date(b.createdAt) - new Date(a.createdAt)).forEach(plan => {
+                    listHtml += `<tr class="hover:bg-slate-50 transition-colors">
+                        <td class="font-bold text-slate-700">${plan.desc} <span class="text-[10px] bg-slate-200 text-slate-600 px-2 py-0.5 rounded-full ml-2 font-black uppercase">${plan.count}x</span></td>
+                        <td><span class="bg-slate-100 text-slate-500 px-2 py-0.5 rounded text-[10px] font-black uppercase tracking-tighter">${plan.category}</span></td>
+                        <td class="text-right">
+                            <span class="font-black text-rose-600 block">${fmtMoney(plan.totalAmount)}</span>
+                            <span class="text-[10px] font-bold text-slate-400 uppercase tracking-widest">${fmtMoney(plan.installmentValue)}/mês</span>
+                        </td>
+                        <td class="text-center text-xs font-bold text-slate-500">${new Date(plan.startDate || plan.createdAt).toLocaleDateString('pt-BR')}</td>
+                        <td class="text-center no-print">
+                            <button onclick="deleteInstallmentPlan('${plan.id}')" class="text-slate-300 hover:text-rose-500 transition-colors" title="Excluir Plano e Parcelas Futuras"><i class="ph-fill ph-trash text-lg"></i></button>
+                        </td>
+                    </tr>`;
+                });
+            }
+            const listEl = document.getElementById('installmentsList');
+            if (listEl) {
+                const thead = listEl.parentElement.querySelector('thead tr');
+                if(thead && thead.children.length === 4) {
+                    thead.innerHTML += '<th class="w-16 text-center no-print">Ações</th>';
+                }
+                listEl.innerHTML = listHtml;
+            }
+        };
+
+        window.deleteInstallmentPlan = async (planId) => {
+            if(!confirm("Atenção: Deseja excluir este plano de parcelamento? Isso apagará TODAS as parcelas vinculadas a ele (pendentes ou pagas).")) return;
+            
+            const batch = writeBatch(db);
+            // Deletar o plano master
+            batch.delete(doc(db, 'users', currentUser.uid, 'installments', planId));
+            
+            // Deletar as transações vinculadas
+            transactions.forEach(t => {
+                if(t.planId === planId) {
+                    batch.delete(doc(db, 'users', currentUser.uid, 'transactions', t.id));
+                }
+            });
+            
+            await batch.commit();
+        };
+
         // --- MANIPULAÇÃO DO FORM E CRUD MENSAL ---
         window.editTransaction = (id) => {
             const t = transactions.find(x => x.id === id); if(!t) return;
@@ -1621,6 +1731,12 @@
             document.getElementById('transactionForm').reset();
             document.getElementById('transactionModalTitle').innerText = 'Novo Registro';
             document.getElementById('formDate').value = `${currentMonth}-01`;
+            
+            // Limpa o estado de parcelamento para novos registros
+            document.getElementById('formParcel').checked = false;
+            document.getElementById('formParcelCount').classList.add('hidden');
+            document.getElementById('formParcelCount').value = '';
+
             updateFormUI();
             openModal('transactionModal');
         };
@@ -1633,13 +1749,60 @@
                 type: type, desc: document.getElementById('formDesc').value, amount: amount,
                 date: document.getElementById('formDate').value, category: document.getElementById('formCategory').value,
                 paymentMethod: document.getElementById('formPaymentMethod').value || '',
-                status: document.getElementById('formStatus').checked ? 'done' : 'pending',
-                parcelado: document.getElementById('formParcel').checked
+                status: document.getElementById('formStatus').checked ? 'done' : 'pending'
             };
             
+            const isParcel = document.getElementById('formParcel').checked;
+            const parcelCountInput = document.getElementById('formParcelCount');
+            const parcelCount = parcelCountInput && !parcelCountInput.classList.contains('hidden') ? parseInt(parcelCountInput.value) || 1 : 1;
+
             closeModal('transactionModal');
-            if (editingTxId) await updateDoc(doc(db, 'users', currentUser.uid, 'transactions', editingTxId), data);
-            else await setDoc(doc(db, 'users', currentUser.uid, 'transactions', Date.now().toString()), data);
+
+            // Fluxo de criação de múltiplas parcelas (Apenas novos registros de despesa)
+            if (isParcel && parcelCount > 1 && !editingTxId && type === 'expense') {
+                const batch = writeBatch(db);
+                const planId = Date.now().toString();
+                const instValue = data.amount / parcelCount; // O valor digitado é dividido pelo nº de parcelas
+                
+                // 1. Criar o Plano de Parcelamento (Master)
+                batch.set(doc(db, 'users', currentUser.uid, 'installments', planId), {
+                    desc: data.desc,
+                    totalAmount: data.amount,
+                    installmentValue: instValue,
+                    count: parcelCount,
+                    startDate: data.date,
+                    category: data.category,
+                    createdAt: new Date().toISOString()
+                });
+
+                // 2. Gerar N Transações Individuais (Mês a Mês)
+                let [y, m, d] = data.date.split('-');
+                let year = parseInt(y), month = parseInt(m);
+                
+                for (let i = 0; i < parcelCount; i++) {
+                    let txDate = `${year}-${String(month).padStart(2, '0')}-${d}`;
+                    let txId = `${planId}_${i}`; // ID único baseado no plano
+                    
+                    batch.set(doc(db, 'users', currentUser.uid, 'transactions', txId), {
+                        ...data,
+                        amount: instValue,
+                        date: txDate,
+                        desc: `${data.desc} (${i + 1}/${parcelCount})`,
+                        parcelado: true,
+                        planId: planId,
+                        status: i === 0 ? data.status : 'pending' // Apenas a 1ª parcela herda o status "Pago" se marcado
+                    });
+                    
+                    month++;
+                    if (month > 12) { month = 1; year++; }
+                }
+                await batch.commit();
+            } else {
+                // Fluxo normal (Sem parcelamento automático ou Edição individual de parcela)
+                data.parcelado = isParcel;
+                if (editingTxId) await updateDoc(doc(db, 'users', currentUser.uid, 'transactions', editingTxId), data);
+                else await setDoc(doc(db, 'users', currentUser.uid, 'transactions', Date.now().toString()), data);
+            }
         });
 
         window.toggleStatus = async (event, id) => {
