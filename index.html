@@ -492,12 +492,26 @@
                     <p class="text-2xl font-black text-rose-600" id="installmentsTotalDebt">R$ 0,00</p>
                 </div>
             </header>
+            
             <div id="installmentsCategorySummary" class="grid grid-cols-2 md:grid-cols-4 gap-4"></div>
-            <div id="installmentsProjectionGrid" class="flex gap-4 overflow-x-auto pb-4 no-scrollbar"></div>
+            
+            <!-- TOTALIZADOR POR MÊS REFORMULADO -->
+            <div class="bg-white rounded-3xl shadow-sm border border-slate-200 overflow-hidden">
+                <div class="p-6 bg-slate-800 text-white font-black uppercase text-xs tracking-widest flex justify-between items-center">
+                    <span><i class="ph-bold ph-calendar-blank mr-2"></i> Totalizador de Parcelas por Mês (Próximos Vencimentos)</span>
+                </div>
+                <div class="p-6 bg-slate-50 border-b border-slate-200">
+                    <div id="installmentsProjectionGrid" class="flex gap-4 overflow-x-auto pb-2 no-scrollbar"></div>
+                </div>
+            </div>
+
             <div class="bg-white rounded-3xl shadow-sm border overflow-hidden">
+                <div class="p-6 bg-slate-50 border-b border-slate-100">
+                    <h3 class="font-black text-slate-800 uppercase text-xs tracking-widest flex items-center gap-2"><i class="ph-bold ph-list-dashes text-lg"></i> Planos de Parcelamento Ativos</h3>
+                </div>
                 <table class="w-full text-left expense-table">
                     <thead>
-                        <tr><th>Descrição</th><th>Categoria</th><th class="text-right">Valor</th><th class="text-center">Data Registro</th></tr>
+                        <tr><th>Descrição</th><th>Categoria</th><th class="text-right">Valor</th><th class="text-center">Data Registro</th><th class="w-16 text-center no-print">Ações</th></tr>
                     </thead>
                     <tbody id="installmentsList"></tbody>
                 </table>
@@ -1276,15 +1290,16 @@
             });
             document.getElementById('installmentsCategorySummary').innerHTML = catHtml || '<p class="text-sm font-medium text-slate-400 col-span-full">Nenhuma dívida futura categorizada.</p>';
 
-            // 3. Grade de Projeção Mensal (Timeline)
+            // 3. Grade de Projeção Mensal (Timeline) - Melhorada
             let projHtml = '';
             Object.entries(monthlyProjections).sort((a,b)=>a[0].localeCompare(b[0])).forEach(([m, val]) => {
-                projHtml += `<div class="bg-white p-4 rounded-2xl border border-slate-200 shadow-sm min-w-[130px] flex-shrink-0 text-center">
-                    <p class="text-[10px] font-black uppercase tracking-widest text-slate-500 mb-1">${formatMonthLong(m).split(' ')[0]} ${m.split('-')[0]}</p>
-                    <p class="text-lg font-black text-rose-600">${fmtMoney(val)}</p>
+                projHtml += `<div class="bg-white p-5 rounded-2xl border-2 border-slate-100 shadow-sm min-w-[150px] flex-shrink-0 text-center relative overflow-hidden group hover:border-blue-200 transition-colors">
+                    <div class="absolute top-0 left-0 w-full h-1 bg-blue-500 opacity-20 group-hover:opacity-100 transition-opacity"></div>
+                    <p class="text-xs font-black uppercase tracking-widest text-slate-500 mb-2">${formatMonthLong(m).split(' ')[0]} ${m.split('-')[0]}</p>
+                    <p class="text-xl font-black text-rose-600">${fmtMoney(val)}</p>
                 </div>`;
             });
-            document.getElementById('installmentsProjectionGrid').innerHTML = projHtml || '<p class="text-sm font-medium text-slate-400">Sem projeções de parcelas.</p>';
+            document.getElementById('installmentsProjectionGrid').innerHTML = projHtml || '<p class="text-sm font-medium text-slate-400 w-full text-center py-4">Nenhuma parcela prevista para os próximos meses.</p>';
 
             // 4. Lista de Planos de Parcelamento (Compatível com dados antigos)
             let listHtml = '';
