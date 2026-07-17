@@ -870,83 +870,83 @@
                     </label>
                 </div>
                 <button type="submit" class="w-full bg-blue-600 text-white font-black py-4 rounded-2xl hover:bg-blue-700 transition-all shadow-xl shadow-blue-600/20 uppercase tracking-widest mt-2">Salvar Item</button>
-            </form>
-        </div>
-    </div>
-
-    <!-- ====================================================================== -->
-    <!-- FIREBASE & LÓGICA JAVASCRIPT -->
-    <!-- ====================================================================== -->
-    <script type="module">
-        import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
-        import { getAuth, onAuthStateChanged, signInWithEmailAndPassword, createUserWithEmailAndPassword, signOut } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
-        import { getFirestore, collection, doc, setDoc, deleteDoc, updateDoc, onSnapshot, writeBatch } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
-
-        const firebaseConfig = {
-            apiKey: "AIzaSyDHcMf8iobRwnlwRPBYIBx5xliegUojInM",
-            authDomain: "finfamilia-e0ecc.firebaseapp.com",
-            projectId: "finfamilia-e0ecc",
-            storageBucket: "finfamilia-e0ecc.firebasestorage.app",
-            messagingSenderId: "93131862320",
-            appId: "1:93131862320:web:12137a67e7c4de923298f5"
-        };
-
-        const app = initializeApp(firebaseConfig);
-        const auth = getAuth(app);
-        const db = getFirestore(app);
-
-        // ESTADOS GLOBAIS
-        let currentUser = null;
-        let accounts = [];
-        let transactions = [];
-        let projects = [];
-        let installmentPlans = [];
-        let initialBalances = {};
-        
-        // Categorias Originais da Família
-        let userCategories = ["Moradia", "Alimentação", "Transporte", "Saúde", "Educação", "Lazer", "Vestuário", "Despesas Diversas", "Assinaturas"];
-        let incomeCategories = ["Salário", "Rendimento Investimentos", "Vendas", "Outras Receitas"];
-        let paymentMethods = ["Cartão de Crédito", "Cartão de Débito", "Pix", "Dinheiro"];
-        let accountTypes = ["Conta Corrente", "Poupança", "Carteira", "Investimentos"];
-
-        let currentYearObj = new Date().getFullYear();
-        let selectedMonthNum = String(new Date().getMonth() + 1).padStart(2, '0');
-        let currentMonth = `${currentYearObj}-${selectedMonthNum}`;
-        let selectedTxs = new Set();
-        let chartInstanceCashFlow = null;
-        let chartInstanceDonut = null;
-        let isLoginMode = true;
-        let editingTxId = null;
-        let currentProjectId = null;
-
-        // FORMATADORES
-        const fmtMoney = val => new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(val);
-        const formatMonthLong = yyyymm => {
-            const mNames = ['Janeiro', 'Fevereiro', 'Março', 'Abril', 'Maio', 'Junho', 'Julho', 'Agosto', 'Setembro', 'Outubro', 'Novembro', 'Dezembro'];
-            const [y, m] = yyyymm.split('-');
-            return `${mNames[parseInt(m) - 1]} de ${y}`;
-        };
-
-        // --- AUTH SISTEMA ---
-        onAuthStateChanged(auth, user => {
-            const loadingScreen = document.getElementById('loadingScreen');
-            const authScreen = document.getElementById('authScreen');
-            const appContainer = document.getElementById('appContainer');
-
-            if (user) {
-                currentUser = user;
-                authScreen.classList.add('hidden');
-                appContainer.classList.remove('hidden');
-                appContainer.classList.add('flex');
-                loadingScreen.classList.add('hidden');
-                startDatabaseListeners();
-            } else {
-                currentUser = null;
-                appContainer.classList.add('hidden');
-                appContainer.classList.remove('flex');
-                authScreen.classList.remove('hidden');
-                loadingScreen.classList.add('hidden');
+        // FUNÇÃO DE PROJEÇÃO (PARALELA, APENAS INFORMATIVA)
+        window.openInstallmentPrompt = (event, txId) => {
+            if(event) event.stopPropagation();
+            const t = transactions.find(x => x.id === txId);
+            document.getElementById('installmentForm').reset();
+            document.getElementById('instPlanId').value = '';
+            
+            // Se veio de uma despesa, preenche os dados iniciais
+            if(t) {
+                document.getElementById('instDesc').value = t.desc;
+                document.getElementById('instAmount').value = Math.abs(t.amount);
+                const catSelect = document.getElementById('instCategory');
+                if(!Array.from(catSelect.options).some(opt => opt.value === t.category)) catSelect.add(new Option(t.category, t.category));
+                catSelect.value = t.category;
             }
+            document.getElementById('instCurrentMonthLabel').innerText = formatMonthName(currentMonth);
+            openModal('installmentPromptModal');
+        };
+
+        window.renderInstallmentsView = () => {
+            let totalDebt = 0; let activePlansHTML = '';
+            const projectedTotals = {}; 
+
+            installmentPlans.sort((a,b) => a.firstMonth.localeCompare(b.firstMonth)).forEach(plan => {
+                const totalAmount = plan.amount * plan.totalInstallments;
+                totalDebt += totalAmount;
+
+                // Calcula quanto já foi (projeção visual)
+                let passed = diffMonths(plan.firstMonth, currentMonth);
+                let remaining = Math.max(0, plan.totalInstallments - passed);
+                
+                // Popula o totalizador por mês futuro
+                for(let i=0; i<plan.totalInstallments; i++) {
+                    let m = addMonthsToYYYYMM(plan.firstMonth, i);
+                    if(!projectedTotals[m]) projectedTotals[m] = 0;
+                    projectedTotals[m] += plan.amount;
+                }
+
+                activePlansHTML += `
+                    <tr class="hover:bg-slate-50 transition-colors">
+                        <td class="font-medium text-slate-800">${plan.desc}</td>
+                        <td><span class="bg-slate-100 border border-slate-200 text-slate-700 px-2 py-0.5 rounded text-[10px] font-bold uppercase">${plan.category}</span></td>
+                        <td class="text-right font-medium">${fmtMoney(plan.amount)}</td>
+                        <td class="text-right font-bold text-rose-600">${fmtMoney(totalAmount)}</td>
+                        <td class="text-center text-slate-500">${formatMonthName(plan.firstMonth)}</td>
+                        <td class="text-center text-slate-500">${formatMonthName(addMonthsToYYYYMM(plan.firstMonth, plan.totalInstallments - 1))}</td>
+                        <td class="text-center">
+                            <button onclick="deleteInstallmentPlan('${plan.id}')" class="text-slate-400 hover:text-rose-500"><i class="ph-fill ph-trash"></i></button>
+                        </td>
+                    </tr>`;
+            });
+
+            document.getElementById('installmentsTotalDebt').innerText = fmtMoney(totalDebt);
+            document.getElementById('installmentsList').innerHTML = activePlansHTML || `<tr><td colspan="7" class="text-center py-8 text-slate-400 text-sm">Nenhum parcelamento projetado.</td></tr>`;
+
+            // Renderiza o novo Totalizador por Mês
+            let gridHTML = '';
+            Object.keys(projectedTotals).sort().forEach(m => {
+                gridHTML += `<div class="bg-blue-50 rounded-lg p-3 text-center border border-blue-100 min-w-[100px]">
+                    <div class="text-[10px] font-bold text-blue-500 uppercase">${formatMonthName(m)}</div>
+                    <div class="text-sm font-bold text-blue-800">${fmtMoney(projectedTotals[m])}</div>
+                </div>`;
+            });
+            document.getElementById('installmentsProjectionGrid').innerHTML = gridHTML || '<p class="text-sm text-slate-400">Sem projeções.</p>';
+        };
+
+        // --- SUBMISSÃO DO FORM SEM GERAR DESPESAS REAIS ---
+        document.getElementById('installmentForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const desc = document.getElementById('instDesc').value;
+            const amount = parseFloat(document.getElementById('instAmount').value);
+            const category = document.getElementById('instCategory').value;
+            const total = parseInt(document.getElementById('instTotal').value);
+            
+            const data = { desc, amount, category, totalInstallments: total, firstMonth: currentMonth };
+            await setDoc(doc(db, 'users', currentUser.uid, 'installments', Date.now().toString()), data);
+            closeModal('installmentPromptModal');
         });
 
         window.toggleAuthMode = () => {
@@ -1535,13 +1535,53 @@
             };
             
             const isParcel = document.getElementById('formParcel').checked;
+            const parcelCount = parseInt(document.getElementById('formParcelCount').value) || 0;
 
             closeModal('transactionModal');
 
-            // Fluxo normal (Sem geração automática. Apenas marcação visual ou edição individual)
-            data.parcelado = isParcel;
-            if (editingTxId) await updateDoc(doc(db, 'users', currentUser.uid, 'transactions', editingTxId), data);
-            else await setDoc(doc(db, 'users', currentUser.uid, 'transactions', Date.now().toString()), data);
+            if (!editingTxId && isParcel && parcelCount > 1 && type === 'expense') {
+                // Geração Automática do Plano e das Transações
+                const planId = 'plan_' + Date.now().toString();
+                const [y, m, d] = data.date.split('-');
+                const firstMonth = `${y}-${m}`;
+                
+                const planData = {
+                    desc: data.desc,
+                    amount: data.amount, // Valor de cada parcela
+                    category: data.category,
+                    totalInstallments: parcelCount,
+                    firstMonth: firstMonth
+                };
+                
+                const batch = writeBatch(db);
+                // 1. Cria o plano para aparecer na aba de Parcelas
+                batch.set(doc(db, 'users', currentUser.uid, 'installments', planId), planData);
+                
+                // 2. Cria as transações reais mês a mês
+                for (let i = 0; i < parcelCount; i++) {
+                    let loopDate = new Date(parseInt(y), parseInt(m) - 1 + i, parseInt(d));
+                    let mStr = `${loopDate.getFullYear()}-${String(loopDate.getMonth() + 1).padStart(2, '0')}`;
+                    let dateStr = `${mStr}-${String(loopDate.getDate()).padStart(2, '0')}`;
+                    
+                    let txData = {
+                        ...data,
+                        date: dateStr,
+                        parcelado: true,
+                        planId: planId,
+                        desc: `${data.desc} (${i+1}/${parcelCount})`,
+                        status: i === 0 ? data.status : 'pending' // Mantém a primeira como o usuário marcou, o resto pendente
+                    };
+                    
+                    let txId = Date.now().toString() + '_' + i;
+                    batch.set(doc(db, 'users', currentUser.uid, 'transactions', txId), txData);
+                }
+                await batch.commit();
+            } else {
+                // Fluxo normal (Lançamento único ou edição)
+                data.parcelado = isParcel;
+                if (editingTxId) await updateDoc(doc(db, 'users', currentUser.uid, 'transactions', editingTxId), data);
+                else await setDoc(doc(db, 'users', currentUser.uid, 'transactions', Date.now().toString()), data);
+            }
         });
 
         window.toggleStatus = async (event, id) => {
