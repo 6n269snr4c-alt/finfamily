@@ -1240,376 +1240,7 @@
         }
 
         // =====================================================================
-        // LÓGICA DE PROJETOS FAMILIARES (NOVO)
-        // =====================================================================
-
-        // MASTER LIST (Grade de Projetos)
-        window.renderProjectsMasterList = () => {
-            const grid = document.getElementById('projectsGrid');
-            if(!grid) return;
-            
-            if(projects.length === 0) {
-                grid.innerHTML = `<div class="col-span-full bg-white rounded-3xl border-2 border-slate-200 border-dashed p-12 text-center flex flex-col items-center justify-center">
-                    <div class="w-20 h-20 bg-slate-100 rounded-full flex items-center justify-center mb-6">
-                        <i class="ph-fill ph-rocket-launch text-4xl text-slate-300"></i>
-                    </div>
-                    <h3 class="text-xl font-black text-slate-800 tracking-tighter">Nenhum projeto ainda</h3>
-                    <p class="text-sm text-slate-500 mt-2 max-w-md font-medium">Comece a planejar sua próxima viagem, reforma ou objetivo financeiro clicando em "Novo Projeto".</p>
-                </div>`;
-                return;
-            }
-
-            const statusColors = { planning: 'bg-blue-100 text-blue-700', active: 'bg-emerald-100 text-emerald-700', completed: 'bg-purple-100 text-purple-700', paused: 'bg-slate-200 text-slate-700' };
-            const statusNames = { planning: 'Planejamento', active: 'Em Andamento', completed: 'Concluído', paused: 'Pausado' };
-
-            let html = '';
-            // Ordenar por data alvo
-            projects.sort((a,b) => new Date(a.targetDate) - new Date(b.targetDate)).forEach(p => {
-                let estimatedTotal = 0, spentTotal = 0;
-                (p.items || []).forEach(it => { estimatedTotal += (it.est || 0); spentTotal += (it.act || 0); });
-                
-                let progress = p.budget > 0 ? (spentTotal / p.budget) * 100 : 0;
-                let progressCls = progress > 100 ? 'bg-rose-500' : (progress > 80 ? 'bg-amber-500' : 'bg-emerald-500');
-
-                html += `
-                <div class="bg-white rounded-3xl shadow-sm border border-slate-200 p-6 hover:shadow-xl transition-all cursor-pointer group flex flex-col hover:-translate-y-1" onclick="openProjectDetails('${p.id}')">
-                    <div class="flex justify-between items-start mb-4">
-                        <span class="px-2 py-1 rounded-lg text-[10px] font-black uppercase tracking-widest ${statusColors[p.status] || 'bg-slate-100 text-slate-700'}">${statusNames[p.status] || 'Desconhecido'}</span>
-                        <span class="text-xs font-bold text-slate-400 flex items-center gap-1"><i class="ph-fill ph-calendar-blank"></i> ${new Date(p.targetDate + 'T00:00:00').toLocaleDateString('pt-BR')}</span>
-                    </div>
-                    <h3 class="text-xl font-black text-slate-800 mb-1 tracking-tighter group-hover:text-amber-600 transition-colors">${p.name}</h3>
-                    <p class="text-xs text-slate-500 mb-6 font-medium uppercase tracking-widest">Orçamento: <strong>${fmtMoney(p.budget)}</strong></p>
-                    
-                    <div class="mt-auto bg-slate-50 p-4 rounded-xl border border-slate-100">
-                        <div class="flex justify-between text-[10px] font-black uppercase tracking-widest text-slate-600 mb-2"><span>Gasto Real</span><span class="${progress > 100 ? 'text-rose-600' : ''}">${fmtMoney(spentTotal)}</span></div>
-                        <div class="w-full bg-slate-200 h-2 rounded-full overflow-hidden shadow-inner"><div class="${progressCls} h-full transition-all" style="width: ${Math.min(100, progress)}%"></div></div>
-                    </div>
-                </div>`;
-            });
-            grid.innerHTML = html;
-        };
-
-        // CRUD Projeto Base
-        const projectForm = document.getElementById('newProjectForm');
-        if (projectForm) {
-            projectForm.addEventListener('submit', async (e) => {
-                e.preventDefault();
-                const id = document.getElementById('projId').value || Date.now().toString();
-                const data = {
-                    name: document.getElementById('projName').value,
-                    targetDate: document.getElementById('projDate').value,
-                    status: document.getElementById('projStatus').value,
-                    budget: parseFloat(document.getElementById('projBudget').value) || 0,
-                    // Não apagar os arrays internos se for edição
-                    ...(document.getElementById('projId').value ? {} : { items: [], tasks: [], savedAmount: 0 })
-                };
-                await setDoc(doc(db, 'users', currentUser.uid, 'projects', id), data, { merge: true });
-                closeModal('newProjectModal');
-            });
-        }
-
-        window.editCurrentProject = () => {
-            const p = projects.find(x => x.id === currentProjectId); if(!p) return;
-            document.getElementById('projId').value = p.id;
-            document.getElementById('projName').value = p.name;
-            document.getElementById('projDate').value = p.targetDate;
-            document.getElementById('projStatus').value = p.status;
-            document.getElementById('projBudget').value = p.budget;
-            document.getElementById('newProjectModalTitle').innerText = 'Editar Projeto';
-            openModal('newProjectModal');
-        };
-
-        window.deleteCurrentProject = async () => {
-            if(confirm("Apagar este projeto definitivamente? Todos os orçamentos e tarefas sumirão.")) {
-                await deleteDoc(doc(db, 'users', currentUser.uid, 'projects', currentProjectId));
-                closeProjectDetails();
-            }
-        };
-
-        window.promptUpdateSavedAmount = async () => {
-            const p = projects.find(x => x.id === currentProjectId); if(!p) return;
-            let val = prompt("Qual o valor de dinheiro/caixa atual já guardado/reservado para este projeto?", p.savedAmount || 0);
-            if(val !== null) {
-                let num = parseFloat(val.replace(',', '.')); if(isNaN(num)) num = 0;
-                await updateDoc(doc(db, 'users', currentUser.uid, 'projects', p.id), { savedAmount: num });
-            }
-        };
-
-        // NAVEGAÇÃO INTERNA DE PROJETOS (MASTER -> DETAIL)
-        window.openProjectDetails = (id) => {
-            currentProjectId = id;
-            document.getElementById('projectsListContainer').classList.add('hidden');
-            document.getElementById('projectDetailContainer').classList.remove('hidden');
-            document.getElementById('projectDetailContainer').classList.add('flex');
-            renderProjectDetailsView();
-        };
-
-        window.closeProjectDetails = () => {
-            currentProjectId = null;
-            document.getElementById('projectDetailContainer').classList.add('hidden');
-            document.getElementById('projectDetailContainer').classList.remove('flex');
-            document.getElementById('projectsListContainer').classList.remove('hidden');
-            renderProjectsMasterList();
-        };
-
-        // RENDER DETALHES DO PROJETO SELECIONADO
-        window.renderProjectDetailsView = () => {
-            const p = projects.find(x => x.id === currentProjectId);
-            if(!p) { closeProjectDetails(); return; }
-
-            const statusNames = { planning: 'Planejamento', active: 'Em Andamento', completed: 'Concluído', paused: 'Pausado' };
-            const statusColors = { planning: 'bg-blue-100 text-blue-700', active: 'bg-emerald-100 text-emerald-700', completed: 'bg-purple-100 text-purple-700', paused: 'bg-slate-200 text-slate-700' };
-
-            document.getElementById('detProjectName').innerText = p.name;
-            document.getElementById('detProjectStatus').innerText = statusNames[p.status];
-            document.getElementById('detProjectStatus').className = `px-3 py-1.5 rounded-lg text-xs font-black uppercase tracking-widest shadow-sm ${statusColors[p.status]}`;
-            document.getElementById('detProjectDate').innerText = new Date(p.targetDate + 'T00:00:00').toLocaleDateString('pt-BR');
-            document.getElementById('detProjectBudget').innerText = fmtMoney(p.budget);
-            document.getElementById('detProjectSaved').innerText = fmtMoney(p.savedAmount || 0);
-
-            let estTotal = 0, spentTotal = 0;
-            const items = p.items || [];
-            let itemsHTML = '';
-
-            items.forEach((it, idx) => {
-                estTotal += (it.est || 0);
-                if(it.isPaid) spentTotal += (it.act || 0);
-
-                itemsHTML += `
-                <tr class="hover:bg-slate-50 transition-colors ${it.isPaid ? 'bg-emerald-50/50' : ''}">
-                    <td class="text-center !px-2"><button onclick="toggleProjectItemPaid('${p.id}', ${idx})" class="text-2xl ${it.isPaid ? 'text-emerald-500' : 'text-slate-300'} hover:scale-110 transition-transform"><i class="ph-fill ph-check-circle"></i></button></td>
-                    <td class="font-bold text-sm ${it.isPaid ? 'text-emerald-700 line-through opacity-70' : 'text-slate-700'}">${it.desc}</td>
-                    <td class="text-right text-amber-600 font-bold">${fmtMoney(it.est || 0)}</td>
-                    <td class="text-right font-black ${it.isPaid ? 'text-rose-600' : 'text-slate-300'}">${(it.act||0) > 0 ? fmtMoney(it.act) : '-'}</td>
-                    <td class="text-center space-x-1">
-                        <button onclick="editProjectItem(${idx})" class="text-slate-400 hover:text-blue-500 p-1"><i class="ph-bold ph-pencil"></i></button>
-                        <button onclick="deleteProjectItem('${p.id}', ${idx})" class="text-slate-400 hover:text-rose-500 p-1"><i class="ph-bold ph-trash"></i></button>
-                    </td>
-                </tr>`;
-            });
-            
-            document.getElementById('projectItemsList').innerHTML = itemsHTML || `<tr><td colspan="5" class="text-center py-8 text-slate-400 text-sm font-medium">Nenhum custo ou orçamento adicionado ainda.</td></tr>`;
-            document.getElementById('detProjectEstimated').innerText = fmtMoney(estTotal);
-            document.getElementById('detProjectSpent').innerText = fmtMoney(spentTotal);
-
-            // Barras Termômetro
-            let pctEst = p.budget > 0 ? (estTotal / p.budget) * 100 : 0;
-            let pctSpent = p.budget > 0 ? (spentTotal / p.budget) * 100 : 0;
-            document.getElementById('barEstimated').style.width = `${Math.min(100, pctEst)}%`;
-            document.getElementById('barEstimated').className = `h-full absolute left-0 top-0 opacity-40 transition-all duration-700 ease-out ${pctEst > 100 ? 'bg-rose-400' : 'bg-amber-400'}`;
-            document.getElementById('barSpent').style.width = `${Math.min(100, pctSpent)}%`;
-            document.getElementById('detBudgetPercent').innerText = `${pctSpent.toFixed(1)}% Comprometido`;
-            if (pctSpent > 100) document.getElementById('detBudgetPercent').classList.add('text-rose-600', 'bg-rose-50', 'border-rose-200');
-            else document.getElementById('detBudgetPercent').classList.remove('text-rose-600', 'bg-rose-50', 'border-rose-200');
-
-            // Tarefas (To-Do)
-            const tasks = p.tasks || [];
-            let tasksHTML = tasks.map((tk, idx) => `
-                <div class="flex items-center justify-between p-3 rounded-xl hover:bg-slate-100 group border border-slate-100 transition-colors ${tk.isDone ? 'bg-slate-50' : 'bg-white'} shadow-sm">
-                    <label class="flex items-center gap-3 cursor-pointer flex-1">
-                        <input type="checkbox" class="custom-checkbox !w-5 !h-5" ${tk.isDone ? 'checked' : ''} onchange="toggleProjectTask('${p.id}', ${idx}, this.checked)">
-                        <span class="text-sm font-bold ${tk.isDone ? 'text-slate-400 line-through' : 'text-slate-700'}">${tk.desc}</span>
-                    </label>
-                    <button onclick="deleteProjectTask('${p.id}', ${idx})" class="text-slate-300 hover:text-rose-500 opacity-0 group-hover:opacity-100 transition-opacity p-2"><i class="ph-bold ph-trash"></i></button>
-                </div>
-            `).join('');
-            document.getElementById('projectTasksList').innerHTML = tasksHTML || '<div class="text-center py-6 text-slate-400 font-medium text-sm">Sem tarefas na lista.</div>';
-        };
-
-        // ITENS DO PROJETO (Orçamentos)
-        window.openProjectItemModal = () => {
-            document.getElementById('projectItemForm').reset();
-            document.getElementById('pItemId').value = '';
-            openModal('projectItemModal');
-        };
-
-        window.editProjectItem = (index) => {
-            const p = projects.find(x => x.id === currentProjectId); if(!p || !p.items) return;
-            const item = p.items[index];
-            document.getElementById('pItemId').value = index; 
-            document.getElementById('pItemDesc').value = item.desc;
-            document.getElementById('pItemEst').value = item.est || 0;
-            document.getElementById('pItemAct').value = item.act || 0;
-            document.getElementById('pItemPaid').checked = item.isPaid || false;
-            openModal('projectItemModal');
-        };
-
-        const itemForm = document.getElementById('projectItemForm');
-        if (itemForm) {
-            itemForm.addEventListener('submit', async (e) => {
-                e.preventDefault();
-                const p = projects.find(x => x.id === currentProjectId); if(!p) return;
-                const items = [...(p.items || [])];
-                
-                const idxStr = document.getElementById('pItemId').value;
-                const newItem = {
-                    desc: document.getElementById('pItemDesc').value,
-                    est: parseFloat(document.getElementById('pItemEst').value) || 0,
-                    act: parseFloat(document.getElementById('pItemAct').value) || 0,
-                    isPaid: document.getElementById('pItemPaid').checked
-                };
-
-                if(idxStr !== '') { items[parseInt(idxStr)] = newItem; } 
-                else { items.push(newItem); }
-
-                await updateDoc(doc(db, 'users', currentUser.uid, 'projects', p.id), { items });
-                closeModal('projectItemModal');
-            });
-        }
-
-        window.deleteProjectItem = async (projId, itemIdx) => {
-            if(!confirm("Remover este item do orçamento?")) return;
-            const p = projects.find(x => x.id === projId); if(!p) return;
-            const items = [...(p.items || [])]; items.splice(itemIdx, 1);
-            await updateDoc(doc(db, 'users', currentUser.uid, 'projects', p.id), { items });
-        };
-
-        window.toggleProjectItemPaid = async (projId, itemIdx) => {
-            const p = projects.find(x => x.id === projId); if(!p) return;
-            const items = [...(p.items || [])]; 
-            items[itemIdx].isPaid = !items[itemIdx].isPaid;
-            if (items[itemIdx].isPaid && (!items[itemIdx].act || items[itemIdx].act === 0)) {
-                items[itemIdx].act = items[itemIdx].est;
-            }
-            await updateDoc(doc(db, 'users', currentUser.uid, 'projects', p.id), { items });
-        };
-
-        // TAREFAS DO PROJETO (To-Do)
-        const taskForm = document.getElementById('projectTaskForm');
-        if (taskForm) {
-            taskForm.addEventListener('submit', async (e) => {
-                e.preventDefault();
-                const p = projects.find(x => x.id === currentProjectId); if(!p) return;
-                const tasks = [...(p.tasks || [])];
-                tasks.push({ desc: document.getElementById('newTaskDesc').value, isDone: false });
-                document.getElementById('newTaskDesc').value = '';
-                await updateDoc(doc(db, 'users', currentUser.uid, 'projects', p.id), { tasks });
-            });
-        }
-
-        window.toggleProjectTask = async (projId, taskIdx, isChecked) => {
-            const p = projects.find(x => x.id === projId); if(!p) return;
-            const tasks = [...(p.tasks || [])]; tasks[taskIdx].isDone = isChecked;
-            await updateDoc(doc(db, 'users', currentUser.uid, 'projects', p.id), { tasks });
-        };
-
-        window.deleteProjectTask = async (projId, taskIdx) => {
-            const p = projects.find(x => x.id === projId); if(!p) return;
-            const tasks = [...(p.tasks || [])]; tasks.splice(taskIdx, 1);
-            await updateDoc(doc(db, 'users', currentUser.uid, 'projects', p.id), { tasks });
-        };
-
-
-        // =====================================================================
-        // BALANÇO COMPARATIVO ANUAL (COM TOTAIS EM CADA COLUNA MENSAL)
-        // =====================================================================
-        function renderAnnualDashboard() {
-            const months = ['01', '02', '03', '04', '05', '06', '07', '08', '09', '10', '11', '12'];
-            const monthNames = ['Jan', 'Fev', 'Mar', 'Abr', 'Mai', 'Jun', 'Jul', 'Ago', 'Set', 'Out', 'Nov', 'Dez'];
-            
-            document.getElementById('annualYearLabel').innerText = currentYearObj;
-
-            let totalIncYear = 0, totalExpYear = 0;
-            const matrixIncome = {}; const matrixExpense = {};
-
-            incomeCategories.forEach(cat => { matrixIncome[cat] = { total: 0 }; months.forEach(m => matrixIncome[cat][m] = 0); });
-            userCategories.forEach(cat => { matrixExpense[cat] = { total: 0 }; months.forEach(m => matrixExpense[cat][m] = 0); });
-
-            let monthlyIncData = new Array(12).fill(0); let monthlyExpData = new Array(12).fill(0);
-
-            transactions.filter(t => t.date.startsWith(currentYearObj.toString())).forEach(t => {
-                const monthIdx = parseInt(t.date.split('-')[1]) - 1; const month = t.date.split('-')[1];
-
-                let targetMatrix = t.type === 'income' ? matrixIncome : matrixExpense;
-
-                if(!targetMatrix[t.category]) {
-                    targetMatrix[t.category] = { total: 0 };
-                    months.forEach(m => targetMatrix[t.category][m] = 0);
-                }
-
-                targetMatrix[t.category][month] += t.amount; 
-                targetMatrix[t.category].total += t.amount;
-                
-                if(t.type === 'income') { totalIncYear += t.amount; monthlyIncData[monthIdx] += t.amount; }
-                if(t.type === 'expense') { totalExpYear += t.amount; monthlyExpData[monthIdx] += t.amount; }
-            });
-
-            document.getElementById('annualTotalInc').innerText = fmtMoney(totalIncYear);
-            document.getElementById('annualTotalExp').innerText = fmtMoney(totalExpYear);
-
-            // Cabeçalho da Matriz
-            let thead = `<thead><tr><th class="w-48 text-left bg-slate-100">Categoria</th>`;
-            months.forEach(m => thead += `<th class="w-32 bg-slate-100 text-center">${monthNames[parseInt(m)-1]}</th>`);
-            thead += `<th class="w-32 bg-slate-200 text-right">Total Ano</th></tr></thead>`;
-
-            // Linhas de Receitas
-            let tbody = `<tbody><tr><td colspan="14" class="bg-emerald-50 text-emerald-800 font-bold text-xs uppercase pt-4 pb-2">Entradas / Receitas</td></tr>`;
-            Object.keys(matrixIncome).sort().forEach(cat => {
-                if(matrixIncome[cat].total === 0) return; 
-                tbody += `<tr><td class="font-medium text-slate-700">${cat}</td>`;
-                months.forEach(m => tbody += `<td class="text-emerald-600">${matrixIncome[cat][m] ? fmtMoney(matrixIncome[cat][m]) : '-'}</td>`);
-                tbody += `<td class="font-bold text-emerald-700 bg-emerald-50/50">${fmtMoney(matrixIncome[cat].total)}</td></tr>`;
-            });
-
-            // TOTAIS DE RECEITA POR MÊS (COLUNA)
-            tbody += `<tr class="bg-emerald-100/50 font-bold border-t-2 border-emerald-200"><td class="text-slate-800 text-right pr-4 uppercase text-xs tracking-wider">Total Receitas</td>`;
-            months.forEach(m => tbody += `<td class="text-emerald-700 text-center">${monthlyIncData[parseInt(m)-1] > 0 ? fmtMoney(monthlyIncData[parseInt(m)-1]) : '-'}</td>`);
-            tbody += `<td class="text-emerald-800 text-sm bg-emerald-100">${fmtMoney(totalIncYear)}</td></tr>`;
-
-            // Linhas de Despesas
-            tbody += `<tr><td colspan="14" class="bg-rose-50 text-rose-800 font-bold text-xs uppercase pt-4 pb-2">Saídas / Despesas</td></tr>`;
-            let donutLabels = []; let donutData = [];
-            Object.keys(matrixExpense).sort().forEach(cat => {
-                if(matrixExpense[cat].total === 0) return;
-                if (matrixExpense[cat].total > 0) { donutLabels.push(cat); donutData.push(matrixExpense[cat].total); }
-                tbody += `<tr><td class="font-medium text-slate-700">${cat}</td>`;
-                months.forEach(m => {
-                    const val = matrixExpense[cat][m];
-                    const valStr = val === 0 ? '-' : (val < 0 ? `<span class="text-emerald-500">+${fmtMoney(Math.abs(val))}</span>` : fmtMoney(val));
-                    tbody += `<td class="${val === 0 ? 'text-slate-300' : 'text-slate-800'} text-center">${valStr}</td>`;
-                });
-                tbody += `<td class="font-bold text-rose-700 bg-rose-50/50">${fmtMoney(matrixExpense[cat].total)}</td></tr>`;
-            });
-
-            // TOTAIS DE DESPESA POR MÊS (COLUNA)
-            tbody += `<tr class="bg-rose-100/50 font-bold border-t-2 border-rose-200"><td class="text-slate-800 text-right pr-4 uppercase text-xs tracking-wider">Total Despesas</td>`;
-            months.forEach(m => tbody += `<td class="text-rose-700 text-center">${monthlyExpData[parseInt(m)-1] > 0 ? fmtMoney(monthlyExpData[parseInt(m)-1]) : '-'}</td>`);
-            tbody += `<td class="text-rose-800 text-sm bg-rose-100">${fmtMoney(totalExpYear)}</td></tr>`;
-
-            // SALDO DO MÊS (COLUNA)
-            tbody += `<tr><td colspan="14" class="bg-blue-50 text-blue-800 font-bold text-xs uppercase pt-4 pb-2">Resultado Final</td></tr>`;
-            tbody += `<tr class="bg-blue-100/50 font-bold border-t-2 border-blue-200"><td class="text-slate-800 text-right pr-4 uppercase text-xs tracking-wider">Saldo do Mês</td>`;
-            months.forEach(m => {
-                let s = monthlyIncData[parseInt(m)-1] - monthlyExpData[parseInt(m)-1];
-                tbody += `<td class="${s >= 0 ? 'text-blue-700' : 'text-rose-600'} text-center">${fmtMoney(s)}</td>`;
-            });
-            let sTotal = totalIncYear - totalExpYear;
-            tbody += `<td class="${sTotal >= 0 ? 'text-blue-800' : 'text-rose-700'} text-sm bg-blue-100">${fmtMoney(sTotal)}</td></tr>`;
-
-            tbody += `</tbody>`;
-            document.getElementById('annualMatrixTable').innerHTML = thead + tbody;
-
-            // Renderizar gráficos associados
-            if(chartInstanceCashFlow) chartInstanceCashFlow.destroy(); if(chartInstanceDonut) chartInstanceDonut.destroy();
-            const ctxCash = document.getElementById('cashFlowChart').getContext('2d');
-            chartInstanceCashFlow = new Chart(ctxCash, {
-                type: 'bar',
-                data: { labels: monthNames, datasets: [{ label: 'Receitas', data: monthlyIncData, backgroundColor: '#10b981', borderRadius: 4 }, { label: 'Despesas', data: monthlyExpData, backgroundColor: '#f43f5e', borderRadius: 4 }] },
-                options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { position: 'top', labels: { usePointStyle: true, boxWidth: 8 } } }, scales: { y: { beginAtZero: true, ticks: { callback: function(value) { return 'R$ ' + (value/1000).toFixed(0) + 'k'; } } }, x: { grid: { display: false } } } }
-            });
-            let comboArr = donutLabels.map((lbl, i) => ({ lbl, val: donutData[i] })); comboArr.sort((a,b) => b.val - a.val);
-            let top5Labels = comboArr.slice(0,5).map(x => x.lbl); let top5Data = comboArr.slice(0,5).map(x => x.val);
-            if(comboArr.length > 5) { let othersSum = comboArr.slice(5).reduce((sum, x) => sum + x.val, 0); top5Labels.push('Outros'); top5Data.push(othersSum); }
-            const ctxDonut = document.getElementById('expenseDonutChart').getContext('2d');
-            chartInstanceDonut = new Chart(ctxDonut, {
-                type: 'doughnut',
-                data: { labels: top5Labels, datasets: [{ data: top5Data, backgroundColor: ['#6366f1', '#ec4899', '#f59e0b', '#14b8a6', '#8b5cf6', '#cbd5e1'], borderWidth: 0, hoverOffset: 4 }] },
-                options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { position: 'right', labels: { usePointStyle: true, boxWidth: 8, font: { size: 10 } } } }, cutout: '65%' }
-            });
-        }
-
-        // =====================================================================
-        // GESTÃO DE PARCELAMENTOS (RESTAURADO)
+        // GESTÃO DE PARCELAMENTOS (RESTAURADO E COMPATÍVEL)
         // =====================================================================
         window.renderInstallmentsView = () => {
             const container = document.getElementById('installmentsView');
@@ -1621,14 +1252,14 @@
 
             const todayM = currentMonth; 
             
-            // 1. Calcular dívidas futuras baseado nas transações com planId pendentes
+            // 1. Calcular dívidas futuras (Aceita planId novo ou a flag antiga 'parcelado')
             transactions.forEach(t => {
-                if(t.planId && t.type === 'expense') {
-                    const tMonth = t.date.substring(0, 7);
+                if((t.planId || t.parcelado) && t.type === 'expense') {
+                    const tMonth = (t.date || "").substring(0, 7);
                     if(tMonth >= todayM && checkIsPaid(t) === false) {
-                        futureDebt += t.amount;
-                        categorySums[t.category] = (categorySums[t.category] || 0) + t.amount;
-                        monthlyProjections[tMonth] = (monthlyProjections[tMonth] || 0) + t.amount;
+                        futureDebt += (t.amount || 0);
+                        categorySums[t.category] = (categorySums[t.category] || 0) + (t.amount || 0);
+                        monthlyProjections[tMonth] = (monthlyProjections[tMonth] || 0) + (t.amount || 0);
                     }
                 }
             });
@@ -1655,20 +1286,41 @@
             });
             document.getElementById('installmentsProjectionGrid').innerHTML = projHtml || '<p class="text-sm font-medium text-slate-400">Sem projeções de parcelas.</p>';
 
-            // 4. Lista de Planos de Parcelamento
+            // 4. Lista de Planos de Parcelamento (Compatível com dados antigos)
             let listHtml = '';
             if (typeof installmentPlans === 'undefined' || installmentPlans.length === 0) {
                 listHtml = '<tr><td colspan="5" class="text-center py-8 text-slate-400 font-medium text-sm">Nenhum parcelamento ativo encontrado.</td></tr>';
             } else {
-                installmentPlans.sort((a,b) => new Date(b.createdAt) - new Date(a.createdAt)).forEach(plan => {
+                installmentPlans.sort((a,b) => {
+                    const dateA = a.createdAt || a.startDate || a.date || '2000-01-01';
+                    const dateB = b.createdAt || b.startDate || b.date || '2000-01-01';
+                    return new Date(dateB) - new Date(dateA);
+                }).forEach(plan => {
+                    // Fallbacks para buscar nomes de variáveis do banco antigo
+                    const count = plan.count || plan.parcelas || plan.installments || plan.qtd || '?';
+                    const totalAmount = plan.totalAmount || plan.amount || plan.total || plan.valor || 0;
+                    const instValue = plan.installmentValue || plan.parcelValue || plan.valorParcela || (totalAmount / (Number(count) || 1)) || 0;
+                    
+                    // Tratamento seguro de datas antigas
+                    let dateDisplay = '-';
+                    const dateRaw = plan.startDate || plan.createdAt || plan.date || plan.data;
+                    if (dateRaw) {
+                        const d = new Date(dateRaw);
+                        if (!isNaN(d.getTime())) {
+                            // Se a data vier apenas como YYYY-MM-DD, adicionamos horas para evitar fuso negativo
+                            const tzFix = dateRaw.length === 10 ? 'T12:00:00' : '';
+                            dateDisplay = new Date(dateRaw + tzFix).toLocaleDateString('pt-BR');
+                        }
+                    }
+
                     listHtml += `<tr class="hover:bg-slate-50 transition-colors">
-                        <td class="font-bold text-slate-700">${plan.desc} <span class="text-[10px] bg-slate-200 text-slate-600 px-2 py-0.5 rounded-full ml-2 font-black uppercase">${plan.count}x</span></td>
-                        <td><span class="bg-slate-100 text-slate-500 px-2 py-0.5 rounded text-[10px] font-black uppercase tracking-tighter">${plan.category}</span></td>
+                        <td class="font-bold text-slate-700">${plan.desc || 'Sem Descrição'} <span class="text-[10px] bg-slate-200 text-slate-600 px-2 py-0.5 rounded-full ml-2 font-black uppercase">${count}x</span></td>
+                        <td><span class="bg-slate-100 text-slate-500 px-2 py-0.5 rounded text-[10px] font-black uppercase tracking-tighter">${plan.category || 'Outros'}</span></td>
                         <td class="text-right">
-                            <span class="font-black text-rose-600 block">${fmtMoney(plan.totalAmount)}</span>
-                            <span class="text-[10px] font-bold text-slate-400 uppercase tracking-widest">${fmtMoney(plan.installmentValue)}/mês</span>
+                            <span class="font-black text-rose-600 block">${fmtMoney(totalAmount)}</span>
+                            <span class="text-[10px] font-bold text-slate-400 uppercase tracking-widest">${fmtMoney(instValue)}/mês</span>
                         </td>
-                        <td class="text-center text-xs font-bold text-slate-500">${new Date(plan.startDate || plan.createdAt).toLocaleDateString('pt-BR')}</td>
+                        <td class="text-center text-xs font-bold text-slate-500">${dateDisplay}</td>
                         <td class="text-center no-print">
                             <button onclick="deleteInstallmentPlan('${plan.id}')" class="text-slate-300 hover:text-rose-500 transition-colors" title="Excluir Plano e Parcelas Futuras"><i class="ph-fill ph-trash text-lg"></i></button>
                         </td>
